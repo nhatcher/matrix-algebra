@@ -5,7 +5,7 @@ LFLAGS= -Wl,--no-entry -Wl,--export-dynamic -Wl,--lto-O3 -Wl,--import-memory
 # -Wl,-z,stack-size=$$[8 * 1024 * 1024]
 
 all: js
-	$(CC) $(CFLAGS) $(LFLAGS) -o bin/linear_algebra.wasm src/linear_algebra.c
+	$(CC) $(CFLAGS) $(LFLAGS) -o bin/linear_algebra.wasm src/linear_algebra.c src/walloc.c
 
 js:
 	cp src/linalg.js bin/linalg.js

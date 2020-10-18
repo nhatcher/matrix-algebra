@@ -6,20 +6,30 @@
 // clang --target=wasm32 -x c /dev/null -dM -E
 
 // Memory management
+#include "walloc.h"
+
+#define memalloc(x) malloc(x)
+#define memfree(x, y) free(x)
+
+/*
+// Memory management (stupid bump allocator)
 extern unsigned char __heap_base;
 unsigned int bump_pointer = (int) &__heap_base;
 
 WASM_EXPORT
-void *pmalloc(int n) {
+void *malloc(int n) {
   unsigned int r = bump_pointer;
   bump_pointer += n;
   return (void *)r;
 }
 
 WASM_EXPORT
-void pfree(int n) {
+void free(int n) {
   bump_pointer -= n;
 }
+#define memalloc(x) malloc(x)
+#define memfree(x, y) free(x)
+*/
 
 double fabs(double x) {
   if (x>0) {
@@ -27,9 +37,6 @@ double fabs(double x) {
   }
   return -x;
 }
-
-#define memalloc(x) pmalloc(x)
-#define memfree(x, y) pfree(y)
 
 #else
 

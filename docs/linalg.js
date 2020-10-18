@@ -5,50 +5,53 @@ async function linalg(getAssembly) {
   const env = {memory: memory};
   const instance = await getAssembly({env});
   
-  const pmalloc = instance.exports.pmalloc;
-  const pfree = instance.exports.pfree;
+  const malloc = instance.exports.malloc;
+  const free = instance.exports.free;
 
   function multiply(A, B, N) {
     const L = N * N;
     console.assert(A.length === L);
-    const pA = pmalloc(L * 8);
+    const pA = malloc(L * 8);
     const cA = new Float64Array(memory.buffer, pA, L);
     cA.set(A);
-    const pB = pmalloc(L * 8);
+    const pB = malloc(L * 8);
     const cB = new Float64Array(memory.buffer, pB, L);
     cB.set(B);
-    const pC = pmalloc(L * 8);
+    const pC = malloc(L * 8);
     const cC = new Float64Array(memory.buffer, pC, L);
     instance.exports.multiply(pA, pB, pC, N);
     const D = new Float64Array(L);
     D.set(cC)
-    pfree(L * 8 * 3);
+    free(pA);
+    free(pB);
+    free(pC);
     return D;
   }
 
   function determinant(A, N) {
     const L = N * N;
     console.assert(A.length === L);
-    const pA = pmalloc(L * 8);
+    const pA = malloc(L * 8);
     const cA = new Float64Array(memory.buffer, pA, L);
     cA.set(A);
     const d = instance.exports.determinant(pA, N);
-    pfree(L * 8);
+    free(pA);
     return d;
   }
 
   function inverse(A, N) {
     const L = N * N;
     console.assert(A.length === L);
-    const pA = pmalloc(L * 8);
+    const pA = malloc(L * 8);
     const cA = new Float64Array(memory.buffer, pA, L);
     cA.set(A);
-    const pIA = pmalloc(L * 8);
+    const pIA = malloc(L * 8);
     const cIA = new Float64Array(memory.buffer, pIA, L);
     instance.exports.inverse(pA, pIA, N);
     const B = new Float64Array(L);
     B.set(cIA);
-    pfree(L * 8 * 2);
+    free(pA);
+    free(pIA);
     return B;
   }
   return {

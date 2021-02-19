@@ -27,3 +27,10 @@ body {
 .equation .item {
   align-self: center;
 }
+
+#button {
+  padding: 5px;
+  background-color: aquamarine;
+  border: 1px solid blueviolet;
+  border-radius: 10px;
+}

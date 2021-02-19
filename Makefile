@@ -8,6 +8,7 @@ all: js
 	$(CC) $(CFLAGS) $(LFLAGS) -o bin/linear_algebra.wasm src/linear_algebra.c src/walloc.c
 
 js:
+	mkdir -p bin
 	cp src/linalg.js bin/linalg.js
 
 tests: all

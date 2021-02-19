@@ -12,11 +12,11 @@ function printMatrix(A, N, prec=15) {
     let line = [];
     for (let j=0; j<N; j++) {
       const val = parseFloat(A[i + N*j].toFixed(prec));
-      line.push(`<span class="matrix-el">${val}</span>`);
+      line.push(`${val}`);
     }
-    mat.push(line.join(''));
+    mat.push(line.join(' & '));
   }
-  return '<div class="matrix"><div class="matrix-row">' + mat.join('</div><div class="matrix-row">') + '</div></div>';
+  return '\\begin{pmatrix}' + mat.join('\\\\') + '\\end{pmatrix}';
 };
 
 async function main(N) {
@@ -32,11 +32,27 @@ async function main(N) {
     const Ainv = lin.inverse(A, N);
     const B = lin.multiply(A, Ainv, N);
     const el = document.getElementById('result');
-    const a_html = `<div class="equation"><div class="item">A = </div><div class="item">${printMatrix(A, N, 3)}</div></div>`;
-    const b_html = `<div class="equation"><div class="item">A-1 = </div><div class="item">${printMatrix(Ainv, N, 3)}</div></div>`;
-    const c_html = `<div class="equation"><div class="item">A*A-1 = </div><div class="item">${printMatrix(B, N, 3)}</div></div>`;
-    el.innerHTML =  a_html + b_html + c_html
-    //determinant(A, N) * determinant(B, N);   
+    if (N > 100) {
+      const det = lin.determinant(B, N);
+      el.innerHTML = `Too large to display matris of size ${N}x${N}. det(A*A^(-1)) = ${det}`;
+      return;
+    };
+    el.innerHTML = '';
+    const elA = document.createElement('div');
+    katex.render(String.raw`A = ${printMatrix(A, N, 3)}`, elA, {
+      throwOnError: false
+    });
+    el.appendChild(elA);
+    const elAinv = document.createElement('div');
+    katex.render(String.raw`A^{-1} = ${printMatrix(Ainv, N, 3)}`, elAinv, {
+      throwOnError: false
+    });
+    el.appendChild(elAinv);
+    const elB = document.createElement('div');
+    katex.render(String.raw`A \cdot A^{-1} = ${printMatrix(B, N, 3)}`, elB, {
+      throwOnError: false
+    });
+    el.appendChild(elB);
   }
   test();
 }

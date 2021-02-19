@@ -1,36 +1,12 @@
 body {
 }
 
-.matrix {
-  border-radius: 10px;
-  padding-left: 10px;
-  padding-right: 10px;
-  border-left: 1px solid grey;
-  border-right: 1px solid grey;
-  display: inline-block;
-}
-.matrix-row {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-}
-.matrix-el {
-  display: inline-block;
-  width: 80px;
-  text-align: center;
-}
-
-.equation {
-  display: flex;
-}
-
-.equation .item {
-  align-self: center;
-}
 
 #button {
+  display: inline-block;
   padding: 5px;
   background-color: aquamarine;
   border: 1px solid blueviolet;
   border-radius: 10px;
+  cursor: pointer;
 }

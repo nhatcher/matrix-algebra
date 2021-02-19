@@ -1,4 +1,4 @@
-CC= clang
+CC= ./clang+llvm-11.0.0-x86_64-linux-gnu-ubuntu-20.04/bin/clang
 CFLAGS= --target=wasm32 -Oz -flto -nostdlib
 
 LFLAGS= -Wl,--no-entry -Wl,--export-dynamic -Wl,--lto-O3 -Wl,--import-memory

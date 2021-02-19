@@ -14,10 +14,10 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: get's clang 11
-    - run: wget https://github.com/llvm/llvm-project/releases/download/llvmorg-11.0.0/clang+llvm-11.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
+      run: wget https://github.com/llvm/llvm-project/releases/download/llvmorg-11.0.0/clang+llvm-11.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
     - name: untar
-    - run: tar -xf clang+llvm-11.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
+      run: tar -xf clang+llvm-11.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
     - name: set clang11 as default
-    - run: export PATH=./clang+llvm-11.0.0-x86_64-linux-gnu-ubuntu-20.04/bin/:PATH
+      run: export PATH=./clang+llvm-11.0.0-x86_64-linux-gnu-ubuntu-20.04/bin/:PATH
     - name: make
       run: make

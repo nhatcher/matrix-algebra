@@ -7,10 +7,16 @@
   <script src="linalg.js"></script>
   <script src="main.js"></script>
 <script type="module">
-  main();
+  main(5);
+  const button = document.getElementById('button');
+  const value = document.getElementById('value')
+  button.addEventListener('click', () => main(value.value));
 </script>
 </head>
 <body>
+  <h1>Calculating the inverse of a random matrix</h1>
+  <div id="button">Recompute</div>
+  <input id="value" type="number" value="5"/>
 <div id="result"></div>
 </body>
 </html>

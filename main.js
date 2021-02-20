@@ -6,6 +6,7 @@ function createRandomMatrix(N) {
   }
   return A;
 };
+
 function printMatrix(A, N, prec=15) {
   let mat = [];
   for (let i=0; i<N; i++) {

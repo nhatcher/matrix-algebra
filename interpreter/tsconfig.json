@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+      "module": "ES2020",
+      "noImplicitAny": true,
+      "removeComments": true,
+      "preserveConstEnums": true,
+      "outDir": "build",
+      "sourceMap": true,
+      "lib": ["ES2020", "dom"]
+    },
+    "include": ["*"],
+    "exclude": ["node_modules"]
+}

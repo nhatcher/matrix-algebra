@@ -6,6 +6,8 @@ on:
 
 jobs:
   build:
+    env:
+      CLANG ./clang+llvm-11.0.0-x86_64-linux-gnu-ubuntu-20.04/bin/clang
 
     runs-on: ubuntu-20.04
 
@@ -17,9 +19,6 @@ jobs:
 
     - name: untar
       run: tar -xf clang+llvm-11.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
-
-    - name: add to path
-      run: export CLANG=./clang+llvm-11.0.0-x86_64-linux-gnu-ubuntu-20.04/bin/clang
 
     - name: make
       run: make

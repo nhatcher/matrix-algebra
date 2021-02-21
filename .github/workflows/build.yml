@@ -20,6 +20,9 @@ jobs:
     - name: untar
       run: tar -xf clang+llvm-11.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
 
+    - name: Install typescript
+      run: npx tsc
+
     - name: make
       run: make
 

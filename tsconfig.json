@@ -8,6 +8,6 @@
       "sourceMap": true,
       "lib": ["ES2020", "dom"]
     },
-    "include": ["*"],
+    "include": ["interpreter/*"],
     "exclude": ["node_modules"]
 }

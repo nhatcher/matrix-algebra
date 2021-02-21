@@ -144,9 +144,9 @@ export class Parser {
         return lhs;
     }
 
-    parseDefinition(): Node {
+    // parseDefinition(): Node {
 
-    }
+    // }
 
     parse(): Node {
         const lexer = this.lexer;

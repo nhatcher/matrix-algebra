@@ -1,0 +1,74 @@
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  background-color: #ececec;
+  background: linear-gradient(135deg, #0f55e4, #0a3a9c);
+  color: #fff;
+}
+
+.repl-wrapper {
+  position: fixed;
+  font-family: monospace;
+  font-size: 16px;
+  color: #fff;
+  width: calc(100% - 3em);
+  max-width: 100%;
+  max-height: calc(100% - 3em);
+  overflow-y: auto;
+  margin: 16px;
+  padding: 8px 0px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 8px;
+  box-shadow: 0 12px 48px rgba(50, 50, 50, 0.5);
+  z-index: 100;
+  line-height: 1.5;
+}
+
+.repl-wrapper .repl-input {
+  font-family: monospace;
+  font-size: 16px;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  appearance: none;
+  min-width: calc(100% - 32px);
+  resize: none;
+}
+
+.repl-wrapper .repl-input:before {
+  content: '> ';
+  color: #FC3565;
+  vertical-align: top;
+}
+
+.repl-wrapper .command:before {
+  content: '> ';
+  color: #FC3565;
+  vertical-align: top;
+}
+
+.repl-wrapper .command {
+  width: 100%;
+  display: block;
+  white-space: pre;
+}
+
+.repl-wrapper .repl-inner {
+  padding: 5px 18px;
+}
+
+.particles-js-canvas-el {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}

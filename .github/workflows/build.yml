@@ -7,7 +7,7 @@ on:
 jobs:
   build:
     env:
-      CLANG ./clang+llvm-11.0.0-x86_64-linux-gnu-ubuntu-20.04/bin/clang
+      CLANG: ./clang+llvm-11.0.0-x86_64-linux-gnu-ubuntu-20.04/bin/clang
 
     runs-on: ubuntu-20.04
 

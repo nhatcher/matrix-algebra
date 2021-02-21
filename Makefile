@@ -20,4 +20,4 @@ tests: all
 clean:
 	rm -f tests/linear_algebra.wasm
 	rm -f tests/linalg.js
-	rm -f build/linear_algebra.wasm
+	rm -f -r build/

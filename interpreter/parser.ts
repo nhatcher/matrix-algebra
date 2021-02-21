@@ -144,7 +144,14 @@ export class Parser {
         return lhs;
     }
 
+    parseDefinition(): Node {
+
+    }
+
     parse(): Node {
+        const lexer = this.lexer;
+        const token = lexer.nextToken();
+        const kind = token.kind;
         return this.parseExpression(0);
     }
 

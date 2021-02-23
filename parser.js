@@ -104,8 +104,6 @@ var Parser = (function () {
     };
     Parser.prototype.parse = function () {
         var lexer = this.lexer;
-        var token = lexer.nextToken();
-        var kind = token.kind;
         return this.parseExpression(0);
     };
     return Parser;

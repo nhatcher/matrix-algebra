@@ -150,8 +150,8 @@ export class Parser {
 
     parse(): Node {
         const lexer = this.lexer;
-        const token = lexer.nextToken();
-        const kind = token.kind;
+        // const token = lexer.nextToken();
+        // const kind = token.kind;
         return this.parseExpression(0);
     }
 

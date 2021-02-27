@@ -161,13 +161,6 @@ export class Lexer {
         return str;
     }
 
-    peekToken(): Token {
-        const position = this.position;
-        const token = this.nextToken();
-        this.position = position;
-        return token;
-    }
-
     nextToken(): Token {
         this.advanceWhiteSpace();
         const c = this.peekNextChar();
@@ -202,19 +195,31 @@ export class Lexer {
                 kind: TokenKind['*'],
                 str: '*'
             }
-        }  else if (c === '/') {
+        } else if (c === '/') {
             this.advanceChar();
             return {
                 kind: TokenKind['/'],
                 str: '/'
             }
-        }  else if (c === '^') {
+        } else if (c === '^') {
             this.advanceChar();
             return {
                 kind: TokenKind['^'],
                 str: '^'
             }
-        } if(isAlphabetic(c)) {
+        } else if (c === '(') {
+            this.advanceChar();
+            return {
+                kind: TokenKind['('],
+                str: '('
+            }
+        } else if (c === ')') {
+            this.advanceChar();
+            return {
+                kind: TokenKind[')'],
+                str: ')'
+            }
+        } else if(isAlphabetic(c)) {
             const str = this.parseIdentifier();
             return {
                 kind: TokenKind.Identifier,

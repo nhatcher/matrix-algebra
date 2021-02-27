@@ -42,9 +42,21 @@ function isOperation(s: string):boolean {
 export class Parser {
     text: string;
     lexer: Lexer;
+    currentToken: Token;
+    peekToken: Token;
+
     constructor(text: string) {
         this.text = text;
         this.lexer = new Lexer(text);
+
+        // Or simply advanceTokens twice
+        this.currentToken = this.lexer.nextToken();
+        this.peekToken = this.lexer.nextToken();
+    }
+
+    advanceTokens() {
+        this.currentToken = this.peekToken;
+        this.peekToken = this.lexer.nextToken();
     }
 
     prefix_binding_power(op: string): [null, number] {
@@ -71,7 +83,7 @@ export class Parser {
        } else if (op === '+' || op === '-') {
            return [5, 6];
        } else if (op === '*' || op === '/') {
-           return [7,8];
+           return [7, 8];
        } else if (op === '.') {
            return [14, 13];
        }
@@ -79,18 +91,20 @@ export class Parser {
     }
 
     parseExpression(bindingPower: number): Node {
-        const lexer = this.lexer;
-        const token = lexer.nextToken();
+        const token = this.currentToken;
+        this.advanceTokens();
         const kind = token.kind;
         let lhs: Node;
+        console.log(token);
         if (kind === TokenKind.Number) {
             lhs = {
                 type: 'number',
                 value: token.value || 0
             }
         } else if (kind === TokenKind['(']) {
-            lhs = this.parseExpression(bindingPower);
-            console.assert(lexer.nextToken().kind === TokenKind[')']);
+            lhs = this.parseExpression(0);
+            this.advanceTokens();
+            console.assert(this.currentToken.kind === TokenKind[')']);
         } else if (token.str === '-' || token.str === '+') {
             const r_bp = this.prefix_binding_power(token.str)[1];
             const rhs = this.parseExpression(r_bp);
@@ -99,12 +113,13 @@ export class Parser {
                 rhs: rhs
             }
         } else {
-            throw new Error(`Unexpected token: ${token}`);
+            throw new Error(`Unexpected token: ${JSON.stringify(token)}`);
         }
 
         for(;;) {
-            const opToken = lexer.peekToken();
-            if (opToken.kind === TokenKind.EOF) {
+            // this.advanceTokens();
+            const opToken = this.currentToken;
+            if (opToken.kind === TokenKind.EOF || opToken.kind === TokenKind[')']) {
                 break;
             } else if (!isOperation(opToken.str)) {
                 throw new Error(`Unexpected token ${opToken.str}`);
@@ -115,7 +130,7 @@ export class Parser {
                 if (leftBindingPower < bindingPower) {
                     break;
                 }
-                lexer.nextToken();
+                this.advanceTokens();
                 // TODO: '['
                 // lhs = {
                 //     type: opToken.str,
@@ -129,7 +144,8 @@ export class Parser {
                 if (leftBindingPower < bindingPower) {
                     break;
                 }
-                lexer.nextToken();
+                console.log('hola', this.currentToken);
+                this.advanceTokens();
                 // TODO: ternary operator '?'
                 const rhs = this.parseExpression(rightBidingPower);
                 lhs = {
@@ -149,9 +165,6 @@ export class Parser {
     // }
 
     parse(): Node {
-        const lexer = this.lexer;
-        // const token = lexer.nextToken();
-        // const kind = token.kind;
         return this.parseExpression(0);
     }
 

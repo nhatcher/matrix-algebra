@@ -6,7 +6,13 @@ var Parser = (function () {
     function Parser(text) {
         this.text = text;
         this.lexer = new Lexer(text);
+        this.currentToken = this.lexer.nextToken();
+        this.peekToken = this.lexer.nextToken();
     }
+    Parser.prototype.advanceTokens = function () {
+        this.currentToken = this.peekToken;
+        this.peekToken = this.lexer.nextToken();
+    };
     Parser.prototype.prefix_binding_power = function (op) {
         if (op === '+' || op === '-') {
             return [null, 9];
@@ -41,10 +47,11 @@ var Parser = (function () {
         return null;
     };
     Parser.prototype.parseExpression = function (bindingPower) {
-        var lexer = this.lexer;
-        var token = lexer.nextToken();
+        var token = this.currentToken;
+        this.advanceTokens();
         var kind = token.kind;
         var lhs;
+        console.log(token);
         if (kind === TokenKind.Number) {
             lhs = {
                 type: 'number',
@@ -52,8 +59,9 @@ var Parser = (function () {
             };
         }
         else if (kind === TokenKind['(']) {
-            lhs = this.parseExpression(bindingPower);
-            console.assert(lexer.nextToken().kind === TokenKind[')']);
+            lhs = this.parseExpression(0);
+            this.advanceTokens();
+            console.assert(this.currentToken.kind === TokenKind[')']);
         }
         else if (token.str === '-' || token.str === '+') {
             var r_bp = this.prefix_binding_power(token.str)[1];
@@ -64,11 +72,11 @@ var Parser = (function () {
             };
         }
         else {
-            throw new Error("Unexpected token: " + token);
+            throw new Error("Unexpected token: " + JSON.stringify(token));
         }
         for (;;) {
-            var opToken = lexer.peekToken();
-            if (opToken.kind === TokenKind.EOF) {
+            var opToken = this.currentToken;
+            if (opToken.kind === TokenKind.EOF || opToken.kind === TokenKind[')']) {
                 break;
             }
             else if (!isOperation(opToken.str)) {
@@ -80,7 +88,7 @@ var Parser = (function () {
                 if (leftBindingPower < bindingPower) {
                     break;
                 }
-                lexer.nextToken();
+                this.advanceTokens();
                 continue;
             }
             var infix = this.infix_binding_power(opToken.str);
@@ -89,7 +97,8 @@ var Parser = (function () {
                 if (leftBindingPower < bindingPower) {
                     break;
                 }
-                lexer.nextToken();
+                console.log('hola', this.currentToken);
+                this.advanceTokens();
                 var rhs = this.parseExpression(rightBidingPower);
                 lhs = {
                     type: opToken.str,
@@ -103,7 +112,6 @@ var Parser = (function () {
         return lhs;
     };
     Parser.prototype.parse = function () {
-        var lexer = this.lexer;
         return this.parseExpression(0);
     };
     return Parser;

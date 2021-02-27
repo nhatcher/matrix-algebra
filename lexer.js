@@ -146,12 +146,6 @@ var Lexer = (function () {
         }
         return str;
     };
-    Lexer.prototype.peekToken = function () {
-        var position = this.position;
-        var token = this.nextToken();
-        this.position = position;
-        return token;
-    };
     Lexer.prototype.nextToken = function () {
         this.advanceWhiteSpace();
         var c = this.peekNextChar();
@@ -204,7 +198,21 @@ var Lexer = (function () {
                 str: '^'
             };
         }
-        if (isAlphabetic(c)) {
+        else if (c === '(') {
+            this.advanceChar();
+            return {
+                kind: TokenKind['('],
+                str: '('
+            };
+        }
+        else if (c === ')') {
+            this.advanceChar();
+            return {
+                kind: TokenKind[')'],
+                str: ')'
+            };
+        }
+        else if (isAlphabetic(c)) {
             var str = this.parseIdentifier();
             return {
                 kind: TokenKind.Identifier,

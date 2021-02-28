@@ -56,6 +56,13 @@ function isOperation(s: string): s is '+' | '-' | '*' | '/' | '^' {
     return ['+', '-', '*', '/', '^'].includes(s);
 }
 
+class ParserError extends Error {
+    constructor(message: string) {
+        super(`[Parser]: ${message}`);
+        this.name = 'ParserError';
+    }
+}
+
 export class Parser {
     text: string;
     lexer: Lexer;
@@ -87,7 +94,7 @@ export class Parser {
         if (op ===  '+' || op === '-') {
             return [null, 9];
         }
-        throw new Error(`Bad op: ${op}`);
+        throw new ParserError(`Bad op: ${op}`);
     }
 
     postfix_binding_power(op: string): [number, null] | null {
@@ -151,7 +158,7 @@ export class Parser {
             lhs = this.parseExpression(0);
             this.advanceTokens();
             if (this.currentToken.kind !== TokenKind[')']) {
-                throw new Error(`[Parser] Expecting ')' found ${token.str}`);
+                throw new ParserError(`Expecting ')' found ${token.str}`);
             }
         } else if (token.str === '-' || token.str === '+') {
             const r_bp = this.prefix_binding_power(token.str)[1];
@@ -161,7 +168,7 @@ export class Parser {
                 rhs: rhs
             }
         } else {
-            throw new Error(`[Parser] Unexpected token (expecting number, atom or prefix). Found: ${token.str}`);
+            throw new ParserError(`Unexpected token (expecting number, atom or prefix). Found: ${token.str}`);
         }
 
         for(;;) {
@@ -169,7 +176,7 @@ export class Parser {
             if (opToken.kind === TokenKind.EOF || opToken.kind === TokenKind[')']) {
                 break;
             } else if (!isOperation(opToken.str)) {
-                throw new Error(`[Parser] Unexpected token (expecting operator) ${opToken.str}`);
+                throw new ParserError(`Unexpected token (expecting operator) ${opToken.str}`);
             }
             const postfix = this.postfix_binding_power(opToken.str);
             if (postfix) {
@@ -208,7 +215,7 @@ export class Parser {
 
     parseDefinition(): Node {
         if (this.peekToken.kind !== TokenKind['=']) {
-            throw new Error(`Expecting '=' found ${this.peekToken.str}`);
+            throw new ParserError(`Expecting '=' found ${this.peekToken.str}`);
         }
         const lhs: VariableNode = {
             type: 'variable',

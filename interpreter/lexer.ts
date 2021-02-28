@@ -15,6 +15,13 @@ function isAlphanumeric(c: string): boolean {
     return /^[a-zA-Z0-9]$/.test(c);
 }
 
+class LexerError extends Error {
+    constructor(message: string) {
+        super(`[Lexer]: ${message}`);
+        this.name = 'LexerError';
+    }
+}
+
 export class Lexer {
     position: number;
     text: string;
@@ -55,7 +62,7 @@ export class Lexer {
                 if (isAlphabetic(c)) {
                     state = 2;
                 } else {
-                    throw Error('[Lexer]: First char of an identifier must be alphabetic');
+                    throw new LexerError('First char of an identifier must be alphabetic');
                 }
             } else if (!isAlphanumeric(c)) {
                 break;
@@ -92,14 +99,14 @@ export class Lexer {
                     } else if (c === '-' || '+') {
                         state = 2;
                     } else {
-                        throw Error(`Expecting digit or + or -, got ${c}`);
+                        throw new LexerError(`Expecting digit or + or -, got ${c}`);
                     }
                 break;
                 case 2:
                     if (isDigit(c)) {
                         state = 3;
                     } else {
-                        throw Error(`Expecting digit got ${c}`);
+                        throw new LexerError(`Expecting digit got ${c}`);
                     }
                 break;
                 case 3:
@@ -116,7 +123,7 @@ export class Lexer {
                     if (isDigit(c)) {
                         state = 5;
                     } else {
-                        throw Error(`Expecting digit got ${c}`);
+                        throw new LexerError(`Expecting digit got ${c}`);
                     }
                 break;
                 case 5:
@@ -131,14 +138,14 @@ export class Lexer {
                     if (c=== '+' || c === '-') {
                         state = 7;
                     } else {
-                        throw Error(`Expecting "+" or "-" got ${c}`);
+                        throw new LexerError(`Expecting "+" or "-" got ${c}`);
                     }
                 break;
                 case 7:
                     if (isDigit(c)) {
                         state = 8;
                     } else {
-                        throw Error(`Expecting digit got ${c}`);
+                        throw new LexerError(`Expecting digit got ${c}`);
                     }
                 break;
                 case 8:
@@ -148,7 +155,7 @@ export class Lexer {
                     }
                 break;
                 default:
-                    throw Error(`Unknown state ${state}`);
+                    throw new LexerError(`Unknown state ${state}`);
             }
             if (accept) {
                 str += c;
@@ -229,10 +236,7 @@ export class Lexer {
                 str: str
             }
         }
-        return {
-            kind: TokenKind.EOF,
-            str: ''
-        }
+        throw new LexerError(`Invalid character ${c}`);
 
     }
 }

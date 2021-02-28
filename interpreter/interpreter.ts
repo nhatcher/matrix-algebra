@@ -38,6 +38,10 @@ function evaluate(stmt: Node, context: any): number {
         return context[stmt.name];
     } else if (stmt.type === 'number') {
         return stmt.value;
+    } else if (stmt.type === 'u-') {
+        return -evaluate(stmt.rhs, context);
+    } else if (stmt.type === 'u+') {
+        return evaluate(stmt.rhs, context);
     }
     throw new Error(`Unexpected node type: ${stmt.type}`);
 }

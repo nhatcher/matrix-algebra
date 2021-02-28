@@ -13,6 +13,9 @@ var Parser = (function () {
         this.currentToken = this.peekToken;
         this.peekToken = this.lexer.nextToken();
     };
+    Parser.prototype.readCurrentToken = function () {
+        return this.currentToken;
+    };
     Parser.prototype.prefix_binding_power = function (op) {
         if (op === '+' || op === '-') {
             return [null, 9];
@@ -62,6 +65,23 @@ var Parser = (function () {
                 type: 'variable',
                 name: token.str
             };
+            if (this.currentToken.kind === TokenKind['(']) {
+                var args = [];
+                this.advanceTokens();
+                for (;;) {
+                    args.push(this.parseExpression(0));
+                    var k = this.readCurrentToken().kind;
+                    if (k === TokenKind[')'] || k === TokenKind[',']) {
+                        break;
+                    }
+                }
+                lhs = {
+                    type: 'function',
+                    name: token.str,
+                    args: args
+                };
+                this.advanceTokens();
+            }
         }
         else if (kind === TokenKind['(']) {
             lhs = this.parseExpression(0);

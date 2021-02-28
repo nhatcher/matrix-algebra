@@ -43,6 +43,33 @@ function evaluate(stmt, context) {
     else if (stmt.type === 'u+') {
         return evaluate(stmt.rhs, context);
     }
+    else if (stmt.type === 'function') {
+        var name_1 = stmt.name;
+        if (name_1 === 'sin') {
+            var args = stmt.args;
+            if (args.length !== 1) {
+                throw new Error('Wrong number of argument for function sin');
+            }
+            return Math.sin(evaluate(args[0], context));
+        }
+        else if (name_1 === 'cos') {
+            var args = stmt.args;
+            if (args.length !== 1) {
+                throw new Error('Wrong number of argument for function cos');
+            }
+            return Math.cos(evaluate(args[0], context));
+        }
+        else if (name_1 === 'tan') {
+            var args = stmt.args;
+            if (args.length !== 1) {
+                throw new Error('Wrong number of argument for function tan');
+            }
+            return Math.tan(evaluate(args[0], context));
+        }
+        else {
+            throw new Error("Undefined function name " + name_1);
+        }
+    }
     throw new Error("Unexpected node type: " + stmt.type);
 }
 //# sourceMappingURL=interpreter.js.map

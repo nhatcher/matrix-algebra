@@ -42,6 +42,29 @@ function evaluate(stmt: Node, context: any): number {
         return -evaluate(stmt.rhs, context);
     } else if (stmt.type === 'u+') {
         return evaluate(stmt.rhs, context);
+    } else if (stmt.type === 'function') {
+        const name = stmt.name;
+        if (name === 'sin') {
+            const args = stmt.args;
+            if (args.length !== 1) {
+                throw new Error('Wrong number of argument for function sin');
+            }
+            return Math.sin(evaluate(args[0], context));
+        } else if (name === 'cos') {
+            const args = stmt.args;
+            if (args.length !== 1) {
+                throw new Error('Wrong number of argument for function cos');
+            }
+            return Math.cos(evaluate(args[0], context));
+        } else if (name === 'tan') {
+            const args = stmt.args;
+            if (args.length !== 1) {
+                throw new Error('Wrong number of argument for function tan');
+            }
+            return Math.tan(evaluate(args[0], context));
+        } else {
+            throw new Error(`Undefined function name ${name}`);
+        }
     }
     throw new Error(`Unexpected node type: ${stmt.type}`);
 }

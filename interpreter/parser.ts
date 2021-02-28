@@ -37,20 +37,19 @@ interface VariableNode {
     name: string
 }
 
-interface FunctionNode {
-    type: 'string',
-    name: string,
-    args: Node[]
-
-}
-
 interface DefinitionNode {
     type: 'definition',
     lhs: VariableNode,
     rhs: Node
 }
 
-export type Node = DefinitionNode | OpNode | UnaryOpNode | NumberNode | VariableNode | FunctionNode;
+interface FunctionCallNode {
+    type: 'function',
+    name: string,
+    args: Node[]
+}
+
+export type Node = DefinitionNode | OpNode | UnaryOpNode | NumberNode | VariableNode | FunctionCallNode;
 
 
 function isOperation(s: string): s is '+' | '-' | '*' | '/' | '^' {
@@ -75,6 +74,13 @@ export class Parser {
     advanceTokens() {
         this.currentToken = this.peekToken;
         this.peekToken = this.lexer.nextToken();
+    }
+
+    readCurrentToken() {
+        // This is horrible (a TypeScript bug)
+        // https://github.com/microsoft/TypeScript/issues/9998
+        // https://github.com/microsoft/TypeScript/issues/25642
+        return this.currentToken;
     }
 
     prefix_binding_power(op: string): [null, number] {
@@ -122,6 +128,24 @@ export class Parser {
             lhs = {
                 type: 'variable',
                 name: token.str
+            }
+            if (this.currentToken.kind === TokenKind['(']) {
+                const args: Node[] = [];
+                this.advanceTokens();
+                for (;;) {
+                    args.push(this.parseExpression(0));
+                    // FIXME: We can't do k = this.currentToken because TypeScript gets confused.
+                    const k = this.readCurrentToken().kind;
+                    if (k === TokenKind[')'] || k === TokenKind[',']) {
+                        break;
+                    }
+                }
+                lhs = {
+                    type: 'function',
+                    name: token.str,
+                    args
+                }
+                this.advanceTokens();
             }
         } else if (kind === TokenKind['(']) {
             lhs = this.parseExpression(0);

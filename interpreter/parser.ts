@@ -17,7 +17,7 @@ https://matklad.github.io/2020/04/13/simple-but-powerful-pratt-parsing.html
 
 
 interface OpNode {
-    type: string,
+    type: '+' | '-' | '*' | '/' | '^',
     lhs: Node,
     rhs: Node
 }
@@ -28,16 +28,38 @@ interface NumberNode {
 }
 
 interface UnaryOpNode {
-    type: '-' | '+',
+    type: 'u-' | 'u+',
     rhs: Node
 }
 
-type Node = OpNode | UnaryOpNode | NumberNode
-
-
-function isOperation(s: string):boolean {
-    return ['+', '-', '*', '/', '^'].includes(s);
+interface VariableNode {
+    type: 'variable',
+    name: string
 }
+
+interface FunctionNode {
+    type: 'string',
+    name: string,
+    args: Node[]
+
+}
+
+interface DefinitionNode {
+    type: 'definition',
+    lhs: VariableNode,
+    rhs: Node
+}
+
+export type Node = DefinitionNode | OpNode | UnaryOpNode | NumberNode | VariableNode | FunctionNode;
+
+
+// function isOperation(s: string):boolean {
+//     return ['+', '-', '*', '/', '^'].includes(s);
+// }
+
+function isOperation(s: string): s is '+' | '-' | '*' | '/' | '^' {
+    return ['+', '-', '*', '/', '^'].includes(s);
+  }
 
 export class Parser {
     text: string;
@@ -60,18 +82,18 @@ export class Parser {
     }
 
     prefix_binding_power(op: string): [null, number] {
-     if (op ===  '+' || op === '-') {
-        return [null, 9];
-     }
-     throw new Error(`Bad op: ${op}`);
+        if (op ===  '+' || op === '-') {
+            return [null, 9];
+        }
+        throw new Error(`Bad op: ${op}`);
     }
 
-   postfix_binding_power(op: string): [number, null] | null {
-    if (op === '!') {
-        return [11, null];
-    } else if (op === '[') {
-        return [11, null];
-    }
+    postfix_binding_power(op: string): [number, null] | null {
+        if (op === '!') {
+            return [11, null];
+        } else if (op === '[') {
+            return [11, null];
+        }
         return null;
     }
 
@@ -95,17 +117,23 @@ export class Parser {
         this.advanceTokens();
         const kind = token.kind;
         let lhs: Node;
-        console.log(token);
         if (kind === TokenKind.Number) {
             lhs = {
                 type: 'number',
                 value: token.value || 0
             }
+        } else if (kind === TokenKind['Identifier']) {
+            lhs = {
+                type: 'variable',
+                name: token.str
+            }
         } else if (kind === TokenKind['(']) {
             lhs = this.parseExpression(0);
             this.advanceTokens();
-            console.assert(this.currentToken.kind === TokenKind[')']);
-        } else if (token.str === '-' || token.str === '+') {
+            if (this.currentToken.kind !== TokenKind[')']) {
+                throw new Error(`[Parser] Expecting ')' found ${token.str}`);
+            }
+        } else if (token.str === 'u-' || token.str === 'u+') {
             const r_bp = this.prefix_binding_power(token.str)[1];
             const rhs = this.parseExpression(r_bp);
             lhs = {
@@ -113,16 +141,15 @@ export class Parser {
                 rhs: rhs
             }
         } else {
-            throw new Error(`Unexpected token: ${JSON.stringify(token)}`);
+            throw new Error(`[Parser] Unexpected token (expecting number, atom or prefix). Found: ${token.str}`);
         }
 
         for(;;) {
-            // this.advanceTokens();
             const opToken = this.currentToken;
             if (opToken.kind === TokenKind.EOF || opToken.kind === TokenKind[')']) {
                 break;
             } else if (!isOperation(opToken.str)) {
-                throw new Error(`Unexpected token ${opToken.str}`);
+                throw new Error(`[Parser] Unexpected token (expecting operator) ${opToken.str}`);
             }
             const postfix = this.postfix_binding_power(opToken.str);
             if (postfix) {
@@ -144,7 +171,6 @@ export class Parser {
                 if (leftBindingPower < bindingPower) {
                     break;
                 }
-                console.log('hola', this.currentToken);
                 this.advanceTokens();
                 // TODO: ternary operator '?'
                 const rhs = this.parseExpression(rightBidingPower);
@@ -160,12 +186,36 @@ export class Parser {
         return lhs;
     }
 
-    // parseDefinition(): Node {
+    parseDefinition(): Node {
+        if (this.peekToken.kind !== TokenKind['=']) {
+            throw new Error(`Expecting '=' found ${this.peekToken.str}`);
+        }
+        const lhs: VariableNode = {
+            type: 'variable',
+            name: this.currentToken.str
+        }
+        this.advanceTokens();
+        this.advanceTokens();
+        const rhs = this.parseExpression(0);
+        
+        return {
+            type: 'definition',
+            lhs,
+            rhs
+        }
 
-    // }
+    }
 
-    parse(): Node {
-        return this.parseExpression(0);
+    parse(): Node[] {
+        const statements = [];
+        while (this.currentToken.kind !== TokenKind.EOF) {
+            if (this.currentToken.kind === TokenKind.Identifier && this.peekToken.kind === TokenKind['=']) {
+                statements.push(this.parseDefinition());
+            } else {
+                statements.push(this.parseExpression(0));
+            }
+        }
+        return statements;
     }
 
 }

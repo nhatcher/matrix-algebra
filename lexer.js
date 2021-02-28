@@ -5,10 +5,10 @@ function isWhiteSpace(c) {
     return [' ', '\t'].includes(c);
 }
 function isAlphabetic(c) {
-    return /^[a-z][A-Z]$/.test(c);
+    return /^[a-zA-Z]$/.test(c);
 }
 function isAlphanumeric(c) {
-    return /^[a-z][A-Z][0-9]$/.test(c);
+    return /^[a-zA-Z0-9]$/.test(c);
 }
 var Lexer = (function () {
     function Lexer(text) {
@@ -40,22 +40,19 @@ var Lexer = (function () {
     };
     Lexer.prototype.parseIdentifier = function () {
         var str = '';
-        var accept = true;
         var state = 1;
-        while (accept) {
+        for (;;) {
             var c = this.peekNextChar();
             if (state === 1) {
                 if (isAlphabetic(c)) {
                     state = 2;
                 }
                 else {
-                    throw Error('First char of an identifier must be alphabetic');
+                    throw Error('[Lexer]: First char of an identifier must be alphabetic');
                 }
             }
-            else {
-                if (!isAlphanumeric(c)) {
-                    break;
-                }
+            else if (!isAlphanumeric(c)) {
+                break;
             }
             str += c;
             this.advanceChar();
@@ -210,6 +207,13 @@ var Lexer = (function () {
             return {
                 kind: TokenKind[')'],
                 str: ')'
+            };
+        }
+        else if (c === '=') {
+            this.advanceChar();
+            return {
+                kind: TokenKind['='],
+                str: '='
             };
         }
         else if (isAlphabetic(c)) {

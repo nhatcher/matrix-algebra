@@ -51,19 +51,26 @@ var Parser = (function () {
         this.advanceTokens();
         var kind = token.kind;
         var lhs;
-        console.log(token);
         if (kind === TokenKind.Number) {
             lhs = {
                 type: 'number',
                 value: token.value || 0
             };
         }
+        else if (kind === TokenKind['Identifier']) {
+            lhs = {
+                type: 'variable',
+                name: token.str
+            };
+        }
         else if (kind === TokenKind['(']) {
             lhs = this.parseExpression(0);
             this.advanceTokens();
-            console.assert(this.currentToken.kind === TokenKind[')']);
+            if (this.currentToken.kind !== TokenKind[')']) {
+                throw new Error("[Parser] Expecting ')' found " + token.str);
+            }
         }
-        else if (token.str === '-' || token.str === '+') {
+        else if (token.str === 'u-' || token.str === 'u+') {
             var r_bp = this.prefix_binding_power(token.str)[1];
             var rhs = this.parseExpression(r_bp);
             lhs = {
@@ -72,7 +79,7 @@ var Parser = (function () {
             };
         }
         else {
-            throw new Error("Unexpected token: " + JSON.stringify(token));
+            throw new Error("[Parser] Unexpected token (expecting number, atom or prefix). Found: " + token.str);
         }
         for (;;) {
             var opToken = this.currentToken;
@@ -80,7 +87,7 @@ var Parser = (function () {
                 break;
             }
             else if (!isOperation(opToken.str)) {
-                throw new Error("Unexpected token " + opToken.str);
+                throw new Error("[Parser] Unexpected token (expecting operator) " + opToken.str);
             }
             var postfix = this.postfix_binding_power(opToken.str);
             if (postfix) {
@@ -97,7 +104,6 @@ var Parser = (function () {
                 if (leftBindingPower < bindingPower) {
                     break;
                 }
-                console.log('hola', this.currentToken);
                 this.advanceTokens();
                 var rhs = this.parseExpression(rightBidingPower);
                 lhs = {
@@ -111,8 +117,34 @@ var Parser = (function () {
         }
         return lhs;
     };
+    Parser.prototype.parseDefinition = function () {
+        if (this.peekToken.kind !== TokenKind['=']) {
+            throw new Error("Expecting '=' found " + this.peekToken.str);
+        }
+        var lhs = {
+            type: 'variable',
+            name: this.currentToken.str
+        };
+        this.advanceTokens();
+        this.advanceTokens();
+        var rhs = this.parseExpression(0);
+        return {
+            type: 'definition',
+            lhs: lhs,
+            rhs: rhs
+        };
+    };
     Parser.prototype.parse = function () {
-        return this.parseExpression(0);
+        var statements = [];
+        while (this.currentToken.kind !== TokenKind.EOF) {
+            if (this.currentToken.kind === TokenKind.Identifier && this.peekToken.kind === TokenKind['=']) {
+                statements.push(this.parseDefinition());
+            }
+            else {
+                statements.push(this.parseExpression(0));
+            }
+        }
+        return statements;
     };
     return Parser;
 }());

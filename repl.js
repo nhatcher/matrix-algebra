@@ -1,10 +1,7 @@
-import { Parser } from './parser.js';
+import { evaluate__str } from './interpreter.js';
 
 //import { Lexer, TokenKind } from './lexer.js';
 
-function evaluate(t) {
-  return JSON.stringify(t);
-}
 
 // Original console design by Matt Cowley https://codepen.io/MattCowley/pen/jqBbdG/
 
@@ -17,6 +14,7 @@ const outputs = document.getElementsByClassName('outputs')[0];
 // Globals
 const cmdHistory = [];
 let level = 0;
+const context = {};
 
 //
 function addCommand(value) {
@@ -28,8 +26,7 @@ function addCommand(value) {
 }
 
 function processCommand(value) {
-  const t = new Parser(value);
-  const text = evaluate(t.parse());
+  const text = evaluate__str(value, context);
   say(text);
 }
 

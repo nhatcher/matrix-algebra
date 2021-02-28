@@ -41,8 +41,8 @@ var Parser = (function () {
         else if (op === '*' || op === '/') {
             return [7, 8];
         }
-        else if (op === '.') {
-            return [14, 13];
+        else if (op === '^') {
+            return [9, 10];
         }
         return null;
     };
@@ -70,11 +70,11 @@ var Parser = (function () {
                 throw new Error("[Parser] Expecting ')' found " + token.str);
             }
         }
-        else if (token.str === 'u-' || token.str === 'u+') {
+        else if (token.str === '-' || token.str === '+') {
             var r_bp = this.prefix_binding_power(token.str)[1];
             var rhs = this.parseExpression(r_bp);
             lhs = {
-                type: token.str,
+                type: token.str === '-' ? 'u-' : 'u+',
                 rhs: rhs
             };
         }

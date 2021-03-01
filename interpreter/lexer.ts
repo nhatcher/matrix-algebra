@@ -223,11 +223,29 @@ export class Lexer {
                 kind: TokenKind[')'],
                 str: ')'
             }
+        } else if (c === '[') {
+            this.advanceChar();
+            return {
+                kind: TokenKind['['],
+                str: '['
+            }
+        } else if (c === ']') {
+            this.advanceChar();
+            return {
+                kind: TokenKind[']'],
+                str: ']'
+            }
         } else if (c === '=') {
             this.advanceChar();
             return {
                 kind: TokenKind['='],
                 str: '='
+            }
+        } else if (c === ',') {
+            this.advanceChar();
+            return {
+                kind: TokenKind[','],
+                str: ','
             }
         } else if(isAlphabetic(c)) {
             const str = this.parseIdentifier();
@@ -236,7 +254,7 @@ export class Lexer {
                 str: str
             }
         }
-        throw new LexerError(`Invalid character ${c}`);
+        throw new LexerError(`Invalid character '${c}'`);
 
     }
 }

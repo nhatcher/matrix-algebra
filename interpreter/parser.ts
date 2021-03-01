@@ -132,8 +132,8 @@ export class Parser {
 
     parseExpression(bindingPower: number): Node {
         const token = this.currentToken;
-        this.advanceTokens();
         const kind = token.kind;
+        this.advanceTokens();
         let lhs: Node;
         if (kind === TokenKind.Number) {
             lhs = {
@@ -175,18 +175,22 @@ export class Parser {
             const k = this.readCurrentToken();
             if (k.kind === TokenKind['[']) {
                 // It's a matrix
+                throw new ParserError('Matrices not implemented yet!');
 
             } else {
                 // It's a vector
                 const args: Node[] = [];
-                this.advanceTokens();
                 for (;;) {
                     args.push(this.parseExpression(0));
                     // FIXME: We can't do k = this.currentToken because TypeScript gets confused.
                     const k = this.readCurrentToken().kind;
-                    if (k === TokenKind[']'] || k === TokenKind[',']) {
+                    if (k === TokenKind[']']) {
                         break;
                     }
+                    if (k !== TokenKind[',']) {
+                        throw new ParserError(`Expecting ',' found '${this.readCurrentToken().str}'`);
+                    }
+                    this.advanceTokens();
                 }
                 lhs = {
                     type: 'vector',
@@ -207,7 +211,7 @@ export class Parser {
 
         for(;;) {
             const opToken = this.currentToken;
-            if (opToken.kind === TokenKind.EOF || opToken.kind === TokenKind[')']) {
+            if (opToken.kind === TokenKind.EOF || opToken.kind === TokenKind[')'] || opToken.kind === TokenKind[','] || opToken.kind === TokenKind[']']) {
                 break;
             } else if (!isOperation(opToken.str)) {
                 throw new ParserError(`Unexpected token (expecting operator) ${opToken.str}`);

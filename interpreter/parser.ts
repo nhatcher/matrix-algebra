@@ -49,7 +49,16 @@ interface FunctionCallNode {
     args: Node[]
 }
 
-export type Node = DefinitionNode | OpNode | UnaryOpNode | NumberNode | VariableNode | FunctionCallNode;
+interface Matrix {
+    type: 'matrix'
+    args: Vector[]
+}
+interface Vector {
+    type: 'vector',
+    args: Node[]
+}
+
+export type Node = DefinitionNode | OpNode | UnaryOpNode | NumberNode | VariableNode | FunctionCallNode | Vector | Matrix;
 
 
 function isOperation(s: string): s is '+' | '-' | '*' | '/' | '^' {
@@ -154,11 +163,36 @@ export class Parser {
                 }
                 this.advanceTokens();
             }
+            // Vector or matrix access mat[2][5]
         } else if (kind === TokenKind['(']) {
             lhs = this.parseExpression(0);
-            this.advanceTokens();
             if (this.currentToken.kind !== TokenKind[')']) {
-                throw new ParserError(`Expecting ')' found ${token.str}`);
+                throw new ParserError(`Expecting ')' found ${this.currentToken.kind}`);
+            }
+            this.advanceTokens();
+        } else if (kind === TokenKind['[']) {
+            // Vector or Matrix
+            const k = this.readCurrentToken();
+            if (k.kind === TokenKind['[']) {
+                // It's a matrix
+
+            } else {
+                // It's a vector
+                const args: Node[] = [];
+                this.advanceTokens();
+                for (;;) {
+                    args.push(this.parseExpression(0));
+                    // FIXME: We can't do k = this.currentToken because TypeScript gets confused.
+                    const k = this.readCurrentToken().kind;
+                    if (k === TokenKind[']'] || k === TokenKind[',']) {
+                        break;
+                    }
+                }
+                lhs = {
+                    type: 'vector',
+                    args
+                }
+                this.advanceTokens();
             }
         } else if (token.str === '-' || token.str === '+') {
             const r_bp = this.prefix_binding_power(token.str)[1];

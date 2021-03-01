@@ -73,8 +73,8 @@ var Parser = (function () {
     };
     Parser.prototype.parseExpression = function (bindingPower) {
         var token = this.currentToken;
-        this.advanceTokens();
         var kind = token.kind;
+        this.advanceTokens();
         var lhs;
         if (kind === TokenKind.Number) {
             lhs = {
@@ -115,16 +115,20 @@ var Parser = (function () {
         else if (kind === TokenKind['[']) {
             var k = this.readCurrentToken();
             if (k.kind === TokenKind['[']) {
+                throw new ParserError('Matrices not implemented yet!');
             }
             else {
                 var args = [];
-                this.advanceTokens();
                 for (;;) {
                     args.push(this.parseExpression(0));
                     var k_1 = this.readCurrentToken().kind;
-                    if (k_1 === TokenKind[']'] || k_1 === TokenKind[',']) {
+                    if (k_1 === TokenKind[']']) {
                         break;
                     }
+                    if (k_1 !== TokenKind[',']) {
+                        throw new ParserError("Expecting ',' found '" + this.readCurrentToken().str + "'");
+                    }
+                    this.advanceTokens();
                 }
                 lhs = {
                     type: 'vector',
@@ -146,7 +150,7 @@ var Parser = (function () {
         }
         for (;;) {
             var opToken = this.currentToken;
-            if (opToken.kind === TokenKind.EOF || opToken.kind === TokenKind[')']) {
+            if (opToken.kind === TokenKind.EOF || opToken.kind === TokenKind[')'] || opToken.kind === TokenKind[','] || opToken.kind === TokenKind[']']) {
                 break;
             }
             else if (!isOperation(opToken.str)) {

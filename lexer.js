@@ -231,11 +231,32 @@ var Lexer = (function () {
                 str: ')'
             };
         }
+        else if (c === '[') {
+            this.advanceChar();
+            return {
+                kind: TokenKind['['],
+                str: '['
+            };
+        }
+        else if (c === ']') {
+            this.advanceChar();
+            return {
+                kind: TokenKind[']'],
+                str: ']'
+            };
+        }
         else if (c === '=') {
             this.advanceChar();
             return {
                 kind: TokenKind['='],
                 str: '='
+            };
+        }
+        else if (c === ',') {
+            this.advanceChar();
+            return {
+                kind: TokenKind[','],
+                str: ','
             };
         }
         else if (isAlphabetic(c)) {
@@ -245,7 +266,7 @@ var Lexer = (function () {
                 str: str
             };
         }
-        throw new LexerError("Invalid character " + c);
+        throw new LexerError("Invalid character '" + c + "'");
     };
     return Lexer;
 }());

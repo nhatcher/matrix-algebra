@@ -1,7 +1,29 @@
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 import { Lexer, TokenKind } from './lexer.js';
 function isOperation(s) {
     return ['+', '-', '*', '/', '^'].includes(s);
 }
+var ParserError = (function (_super) {
+    __extends(ParserError, _super);
+    function ParserError(message) {
+        var _this = _super.call(this, "[Parser]: " + message) || this;
+        _this.name = 'ParserError';
+        return _this;
+    }
+    return ParserError;
+}(Error));
 var Parser = (function () {
     function Parser(text) {
         this.text = text;
@@ -20,7 +42,7 @@ var Parser = (function () {
         if (op === '+' || op === '-') {
             return [null, 9];
         }
-        throw new Error("Bad op: " + op);
+        throw new ParserError("Bad op: " + op);
     };
     Parser.prototype.postfix_binding_power = function (op) {
         if (op === '!') {
@@ -85,9 +107,30 @@ var Parser = (function () {
         }
         else if (kind === TokenKind['(']) {
             lhs = this.parseExpression(0);
-            this.advanceTokens();
             if (this.currentToken.kind !== TokenKind[')']) {
-                throw new Error("[Parser] Expecting ')' found " + token.str);
+                throw new ParserError("Expecting ')' found " + this.currentToken.kind);
+            }
+            this.advanceTokens();
+        }
+        else if (kind === TokenKind['[']) {
+            var k = this.readCurrentToken();
+            if (k.kind === TokenKind['[']) {
+            }
+            else {
+                var args = [];
+                this.advanceTokens();
+                for (;;) {
+                    args.push(this.parseExpression(0));
+                    var k_1 = this.readCurrentToken().kind;
+                    if (k_1 === TokenKind[']'] || k_1 === TokenKind[',']) {
+                        break;
+                    }
+                }
+                lhs = {
+                    type: 'vector',
+                    args: args
+                };
+                this.advanceTokens();
             }
         }
         else if (token.str === '-' || token.str === '+') {
@@ -99,7 +142,7 @@ var Parser = (function () {
             };
         }
         else {
-            throw new Error("[Parser] Unexpected token (expecting number, atom or prefix). Found: " + token.str);
+            throw new ParserError("Unexpected token (expecting number, atom or prefix). Found: " + token.str);
         }
         for (;;) {
             var opToken = this.currentToken;
@@ -107,7 +150,7 @@ var Parser = (function () {
                 break;
             }
             else if (!isOperation(opToken.str)) {
-                throw new Error("[Parser] Unexpected token (expecting operator) " + opToken.str);
+                throw new ParserError("Unexpected token (expecting operator) " + opToken.str);
             }
             var postfix = this.postfix_binding_power(opToken.str);
             if (postfix) {
@@ -139,7 +182,7 @@ var Parser = (function () {
     };
     Parser.prototype.parseDefinition = function () {
         if (this.peekToken.kind !== TokenKind['=']) {
-            throw new Error("Expecting '=' found " + this.peekToken.str);
+            throw new ParserError("Expecting '=' found " + this.peekToken.str);
         }
         var lhs = {
             type: 'variable',

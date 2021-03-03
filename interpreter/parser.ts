@@ -51,7 +51,7 @@ interface FunctionCallNode {
 
 interface Matrix {
     type: 'matrix'
-    args: Vector[]
+    matrix: Node[][]
 }
 interface Vector {
     type: 'vector',
@@ -132,6 +132,8 @@ export class Parser {
 
     parseVector(): {type:'vector', args: Node[]} {
         const args: Node[] = [];
+        console.log('va', this.currentToken);
+        this.advanceTokens();
         for (;;) {
             args.push(this.parseExpression(0));
             // FIXME: We can't do k = this.currentToken because TypeScript gets confused.
@@ -151,21 +153,43 @@ export class Parser {
         }
     }
 
+    parseMatrix(): {type: 'matrix', matrix: Node[][]} {
+        const matrix: Node[][] = [];
+        this.advanceTokens();
+        for (;;) {
+            matrix.push(this.parseVector().args);
+            const kind = this.currentToken.kind;
+            if (kind === TokenKind[']']) {
+                this.advanceTokens();
+                break;
+            } else if (kind !== TokenKind[',']) {
+                throw new ParserError(`(M) Expecting ',' found '${this.peekToken.str}'`);
+            }
+            this.advanceTokens();
+        }
+        console.log(matrix);
+        return {
+            type: 'matrix',
+            matrix
+        }
+    }
+
     parseExpression(bindingPower: number): Node {
         const token = this.currentToken;
         const kind = token.kind;
-        this.advanceTokens();
         let lhs: Node;
         if (kind === TokenKind.Number) {
             lhs = {
                 type: 'number',
                 value: token.value || 0
             }
+            this.advanceTokens();
         } else if (kind === TokenKind['Identifier']) {
             lhs = {
                 type: 'variable',
                 name: token.str
             }
+            this.advanceTokens();
             if (this.currentToken.kind === TokenKind['(']) {
                 const args: Node[] = [];
                 this.advanceTokens();
@@ -186,6 +210,7 @@ export class Parser {
             }
             // Vector or matrix access mat[2][5]
         } else if (kind === TokenKind['(']) {
+            this.advanceTokens();
             lhs = this.parseExpression(0);
             if (this.currentToken.kind !== TokenKind[')']) {
                 throw new ParserError(`Expecting ')' found ${this.currentToken.kind}`);
@@ -193,16 +218,17 @@ export class Parser {
             this.advanceTokens();
         } else if (kind === TokenKind['[']) {
             // Vector or Matrix
-            const k = this.readCurrentToken();
+            const k = this.peekToken;
             if (k.kind === TokenKind['[']) {
                 // It's a matrix
-                throw new ParserError('Matrices not implemented yet!');
-
+                // a = [[1,2],[3,4]]
+                lhs = this.parseMatrix();
             } else {
                 // It's a vector
                 lhs = this.parseVector();
             }
         } else if (token.str === '-' || token.str === '+') {
+            this.advanceTokens();
             const r_bp = this.prefix_binding_power(token.str)[1];
             const rhs = this.parseExpression(r_bp);
             lhs = {

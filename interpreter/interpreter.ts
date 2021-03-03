@@ -198,6 +198,24 @@ function evaluate(stmt: Node, context: any): Value {
             value: r
         }
 
+    } else if (stmt.type === 'matrix') {
+        const N = stmt.matrix.length;
+        const M = stmt.matrix[0].length;
+        const r = Array(N);
+        for (let i = 0; i < N; i++) {
+            r[i] = Array(M);
+            for (let j = 0; j < M; j++) {
+                const t = evaluate(stmt.matrix[i][j], context);
+                if (t.type !== 'number') {
+                    throw new InterpreterError(`Expected number got '${t.type}'`)
+                }
+                r[i][j] = t.value;
+            }
+        }
+        return {
+            type: 'matrix',
+            value: r
+        }
     } else if (stmt.type === 'u-') {
         const result = evaluate(stmt.rhs, context);
         if (result.type === 'number') {

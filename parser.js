@@ -71,6 +71,25 @@ var Parser = (function () {
         }
         return null;
     };
+    Parser.prototype.parseVector = function () {
+        var args = [];
+        for (;;) {
+            args.push(this.parseExpression(0));
+            var k = this.readCurrentToken().kind;
+            if (k === TokenKind[']']) {
+                break;
+            }
+            if (k !== TokenKind[',']) {
+                throw new ParserError("Expecting ',' found '" + this.readCurrentToken().str + "'");
+            }
+            this.advanceTokens();
+        }
+        this.advanceTokens();
+        return {
+            type: 'vector',
+            args: args
+        };
+    };
     Parser.prototype.parseExpression = function (bindingPower) {
         var token = this.currentToken;
         var kind = token.kind;
@@ -118,23 +137,7 @@ var Parser = (function () {
                 throw new ParserError('Matrices not implemented yet!');
             }
             else {
-                var args = [];
-                for (;;) {
-                    args.push(this.parseExpression(0));
-                    var k_1 = this.readCurrentToken().kind;
-                    if (k_1 === TokenKind[']']) {
-                        break;
-                    }
-                    if (k_1 !== TokenKind[',']) {
-                        throw new ParserError("Expecting ',' found '" + this.readCurrentToken().str + "'");
-                    }
-                    this.advanceTokens();
-                }
-                lhs = {
-                    type: 'vector',
-                    args: args
-                };
-                this.advanceTokens();
+                lhs = this.parseVector();
             }
         }
         else if (token.str === '-' || token.str === '+') {

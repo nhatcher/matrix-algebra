@@ -73,6 +73,8 @@ var Parser = (function () {
     };
     Parser.prototype.parseVector = function () {
         var args = [];
+        console.log('va', this.currentToken);
+        this.advanceTokens();
         for (;;) {
             args.push(this.parseExpression(0));
             var k = this.readCurrentToken().kind;
@@ -90,22 +92,44 @@ var Parser = (function () {
             args: args
         };
     };
+    Parser.prototype.parseMatrix = function () {
+        var matrix = [];
+        this.advanceTokens();
+        for (;;) {
+            matrix.push(this.parseVector().args);
+            var kind = this.currentToken.kind;
+            if (kind === TokenKind[']']) {
+                this.advanceTokens();
+                break;
+            }
+            else if (kind !== TokenKind[',']) {
+                throw new ParserError("(M) Expecting ',' found '" + this.peekToken.str + "'");
+            }
+            this.advanceTokens();
+        }
+        console.log(matrix);
+        return {
+            type: 'matrix',
+            matrix: matrix
+        };
+    };
     Parser.prototype.parseExpression = function (bindingPower) {
         var token = this.currentToken;
         var kind = token.kind;
-        this.advanceTokens();
         var lhs;
         if (kind === TokenKind.Number) {
             lhs = {
                 type: 'number',
                 value: token.value || 0
             };
+            this.advanceTokens();
         }
         else if (kind === TokenKind['Identifier']) {
             lhs = {
                 type: 'variable',
                 name: token.str
             };
+            this.advanceTokens();
             if (this.currentToken.kind === TokenKind['(']) {
                 var args = [];
                 this.advanceTokens();
@@ -125,6 +149,7 @@ var Parser = (function () {
             }
         }
         else if (kind === TokenKind['(']) {
+            this.advanceTokens();
             lhs = this.parseExpression(0);
             if (this.currentToken.kind !== TokenKind[')']) {
                 throw new ParserError("Expecting ')' found " + this.currentToken.kind);
@@ -132,15 +157,16 @@ var Parser = (function () {
             this.advanceTokens();
         }
         else if (kind === TokenKind['[']) {
-            var k = this.readCurrentToken();
+            var k = this.peekToken;
             if (k.kind === TokenKind['[']) {
-                throw new ParserError('Matrices not implemented yet!');
+                lhs = this.parseMatrix();
             }
             else {
                 lhs = this.parseVector();
             }
         }
         else if (token.str === '-' || token.str === '+') {
+            this.advanceTokens();
             var r_bp = this.prefix_binding_power(token.str)[1];
             var rhs = this.parseExpression(r_bp);
             lhs = {

@@ -212,6 +212,25 @@ function evaluate(stmt, context) {
             value: r
         };
     }
+    else if (stmt.type === 'matrix') {
+        var N = stmt.matrix.length;
+        var M = stmt.matrix[0].length;
+        var r = Array(N);
+        for (var i = 0; i < N; i++) {
+            r[i] = Array(M);
+            for (var j = 0; j < M; j++) {
+                var t = evaluate(stmt.matrix[i][j], context);
+                if (t.type !== 'number') {
+                    throw new InterpreterError("Expected number got '" + t.type + "'");
+                }
+                r[i][j] = t.value;
+            }
+        }
+        return {
+            type: 'matrix',
+            value: r
+        };
+    }
     else if (stmt.type === 'u-') {
         var result = evaluate(stmt.rhs, context);
         if (result.type === 'number') {

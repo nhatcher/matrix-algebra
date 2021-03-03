@@ -130,6 +130,27 @@ export class Parser {
        return null;
     }
 
+    parseVector(): {type:'vector', args: Node[]} {
+        const args: Node[] = [];
+        for (;;) {
+            args.push(this.parseExpression(0));
+            // FIXME: We can't do k = this.currentToken because TypeScript gets confused.
+            const k = this.readCurrentToken().kind;
+            if (k === TokenKind[']']) {
+                break;
+            }
+            if (k !== TokenKind[',']) {
+                throw new ParserError(`Expecting ',' found '${this.readCurrentToken().str}'`);
+            }
+            this.advanceTokens();
+        }
+        this.advanceTokens();
+        return {
+            type: 'vector',
+            args
+        }
+    }
+
     parseExpression(bindingPower: number): Node {
         const token = this.currentToken;
         const kind = token.kind;
@@ -179,24 +200,7 @@ export class Parser {
 
             } else {
                 // It's a vector
-                const args: Node[] = [];
-                for (;;) {
-                    args.push(this.parseExpression(0));
-                    // FIXME: We can't do k = this.currentToken because TypeScript gets confused.
-                    const k = this.readCurrentToken().kind;
-                    if (k === TokenKind[']']) {
-                        break;
-                    }
-                    if (k !== TokenKind[',']) {
-                        throw new ParserError(`Expecting ',' found '${this.readCurrentToken().str}'`);
-                    }
-                    this.advanceTokens();
-                }
-                lhs = {
-                    type: 'vector',
-                    args
-                }
-                this.advanceTokens();
+                lhs = this.parseVector();
             }
         } else if (token.str === '-' || token.str === '+') {
             const r_bp = this.prefix_binding_power(token.str)[1];

@@ -14,6 +14,8 @@ interface Vector {
 interface Matrix {
     type: 'matrix',
     value: number[],
+    width: number,
+    height: number
 }
 
 type Value = Number | Vector | Matrix;
@@ -65,7 +67,7 @@ function evaluate(stmt: Node, context: any): Value {
             const vector2 = rhs.value;
             const N1 = vector1.length;
             const N2 = vector2.length;
-            if (N1 == N2) {
+            if (N1 === N2) {
                 const result = Array(N1);
                 for (let i = 0; i< N1; i++) {
                     result[i] = vector1[i] + vector2[i];
@@ -76,6 +78,26 @@ function evaluate(stmt: Node, context: any): Value {
                 }
             } else {
                 throw new InterpreterError('Cannot add two vectors of different sizes');
+            }
+        } else if (lhs.type === 'matrix' && rhs.type === 'matrix') {
+            const matrix1 = lhs.value;
+            const matrix2 = rhs.value;
+            const width = lhs.width;
+            const height = lhs.height;
+            if (lhs.width === width && lhs.height === height) {
+                const N = lhs.width*lhs.height;
+                const result = Array(N);
+                for (let i = 0; i < N; i++) {
+                    result[i] = matrix1[i] + matrix2[i];
+                }
+                return {
+                    type: 'matrix',
+                    value: result,
+                    width,
+                    height
+                }
+            } else {
+                throw new InterpreterError('Cannot add matrices of different sizes');
             }
         } else {
             throw new InterpreterError('Cannot add two different objects');
@@ -101,7 +123,27 @@ function evaluate(stmt: Node, context: any): Value {
             } else {
                 throw new InterpreterError('Cannot subtract two vectors of different sizes');
             }
-        } else {
+        }  else if (lhs.type === 'matrix' && rhs.type === 'matrix') {
+            const matrix1 = lhs.value;
+            const matrix2 = rhs.value;
+            const width = lhs.width;
+            const height = lhs.height;
+            if (lhs.width === width && lhs.height === height) {
+                const N = lhs.width*lhs.height;
+                const result = Array(N);
+                for (let i = 0; i < N; i++) {
+                    result[i] = matrix1[i] - matrix2[i];
+                }
+                return {
+                    type: 'matrix',
+                    value: result,
+                    width,
+                    height
+                }
+            } else {
+                throw new InterpreterError('Cannot add matrices of different sizes');
+            }
+        }else {
             throw new InterpreterError('Cannot subtract two different objects');
         }
     } else if (stmt.type === '*') {
@@ -199,22 +241,23 @@ function evaluate(stmt: Node, context: any): Value {
         }
 
     } else if (stmt.type === 'matrix') {
-        const N = stmt.matrix.length;
-        const M = stmt.matrix[0].length;
-        const r = Array(N);
-        for (let i = 0; i < N; i++) {
-            r[i] = Array(M);
-            for (let j = 0; j < M; j++) {
+        const width = stmt.matrix.length;
+        const height = stmt.matrix[0].length;
+        const r = Array(width*height);
+        for (let i = 0; i < width; i++) {
+            for (let j = 0; j < height; j++) {
                 const t = evaluate(stmt.matrix[i][j], context);
                 if (t.type !== 'number') {
                     throw new InterpreterError(`Expected number got '${t.type}'`)
                 }
-                r[i][j] = t.value;
+                r[i + j*width] = t.value;
             }
         }
         return {
             type: 'matrix',
-            value: r
+            value: r,
+            width,
+            height
         }
     } else if (stmt.type === 'u-') {
         const result = evaluate(stmt.rhs, context);

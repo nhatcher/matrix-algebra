@@ -6,6 +6,8 @@ var __extends = (this && this.__extends) || (function () {
         return extendStatics(d, b);
     };
     return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -63,7 +65,7 @@ function evaluate(stmt, context) {
             var vector2 = rhs.value;
             var N1 = vector1.length;
             var N2 = vector2.length;
-            if (N1 == N2) {
+            if (N1 === N2) {
                 var result = Array(N1);
                 for (var i = 0; i < N1; i++) {
                     result[i] = vector1[i] + vector2[i];
@@ -75,6 +77,28 @@ function evaluate(stmt, context) {
             }
             else {
                 throw new InterpreterError('Cannot add two vectors of different sizes');
+            }
+        }
+        else if (lhs.type === 'matrix' && rhs.type === 'matrix') {
+            var matrix1 = lhs.value;
+            var matrix2 = rhs.value;
+            var width = lhs.width;
+            var height = lhs.height;
+            if (lhs.width === width && lhs.height === height) {
+                var N = lhs.width * lhs.height;
+                var result = Array(N);
+                for (var i = 0; i < N; i++) {
+                    result[i] = matrix1[i] + matrix2[i];
+                }
+                return {
+                    type: 'matrix',
+                    value: result,
+                    width: width,
+                    height: height
+                };
+            }
+            else {
+                throw new InterpreterError('Cannot add matrices of different sizes');
             }
         }
         else {
@@ -103,6 +127,28 @@ function evaluate(stmt, context) {
             }
             else {
                 throw new InterpreterError('Cannot subtract two vectors of different sizes');
+            }
+        }
+        else if (lhs.type === 'matrix' && rhs.type === 'matrix') {
+            var matrix1 = lhs.value;
+            var matrix2 = rhs.value;
+            var width = lhs.width;
+            var height = lhs.height;
+            if (lhs.width === width && lhs.height === height) {
+                var N = lhs.width * lhs.height;
+                var result = Array(N);
+                for (var i = 0; i < N; i++) {
+                    result[i] = matrix1[i] - matrix2[i];
+                }
+                return {
+                    type: 'matrix',
+                    value: result,
+                    width: width,
+                    height: height
+                };
+            }
+            else {
+                throw new InterpreterError('Cannot add matrices of different sizes');
             }
         }
         else {
@@ -213,22 +259,23 @@ function evaluate(stmt, context) {
         };
     }
     else if (stmt.type === 'matrix') {
-        var N = stmt.matrix.length;
-        var M = stmt.matrix[0].length;
-        var r = Array(N);
-        for (var i = 0; i < N; i++) {
-            r[i] = Array(M);
-            for (var j = 0; j < M; j++) {
+        var width = stmt.matrix.length;
+        var height = stmt.matrix[0].length;
+        var r = Array(width * height);
+        for (var i = 0; i < width; i++) {
+            for (var j = 0; j < height; j++) {
                 var t = evaluate(stmt.matrix[i][j], context);
                 if (t.type !== 'number') {
                     throw new InterpreterError("Expected number got '" + t.type + "'");
                 }
-                r[i][j] = t.value;
+                r[i + j * width] = t.value;
             }
         }
         return {
             type: 'matrix',
-            value: r
+            value: r,
+            width: width,
+            height: height
         };
     }
     else if (stmt.type === 'u-') {

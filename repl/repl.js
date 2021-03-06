@@ -33,7 +33,6 @@ function processCommand(value) {
 function say(text, process_latex=false) {
   const node = document.createElement('div');
   if (process_latex) {
-    console.log(text);
     katex.render(text, node, {
       throwOnError: true
     });

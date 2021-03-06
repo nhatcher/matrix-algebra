@@ -1,4 +1,4 @@
-import { evaluate__str } from './interpreter.js';
+import { evaluate_str } from './interpreter.js';
 
 //import { Lexer, TokenKind } from './lexer.js';
 
@@ -26,13 +26,20 @@ function addCommand(value) {
 }
 
 function processCommand(value) {
-  const text = evaluate__str(value, context);
-  say(text);
+  const text = evaluate_str(value, context);
+  say(text, true);
 }
 
-function say(text) {
+function say(text, process_latex=false) {
   const node = document.createElement('div');
-  node.innerText = text;
+  if (process_latex) {
+    console.log(text);
+    katex.render(text, node, {
+      throwOnError: true
+    });
+  } else {
+    node.innerText = text;
+  }
   outputs.appendChild(node);
   const inner = repl.getElementsByClassName('repl-inner')[0];
   const bb = inner.getBoundingClientRect();

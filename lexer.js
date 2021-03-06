@@ -1,18 +1,3 @@
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        if (typeof b !== "function" && b !== null)
-            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 function isDigit(c) {
     return /^[0-9]$/.test(c);
 }
@@ -25,48 +10,45 @@ function isAlphabetic(c) {
 function isAlphanumeric(c) {
     return /^[a-zA-Z0-9]$/.test(c);
 }
-var LexerError = (function (_super) {
-    __extends(LexerError, _super);
-    function LexerError(message) {
-        var _this = _super.call(this, "[Lexer]: " + message) || this;
-        _this.name = 'LexerError';
-        return _this;
+class LexerError extends Error {
+    constructor(message) {
+        super(`[Lexer]: ${message}`);
+        this.name = 'LexerError';
     }
-    return LexerError;
-}(Error));
-var Lexer = (function () {
-    function Lexer(text) {
+}
+export class Lexer {
+    constructor(text) {
         this.text = text;
         this.position = 0;
         this.len = text.length;
     }
-    Lexer.prototype.readNextChar = function () {
+    readNextChar() {
         if (this.position >= this.len) {
             return '';
         }
-        var c = this.text[this.position];
+        const c = this.text[this.position];
         this.position += 1;
         return c;
-    };
-    Lexer.prototype.peekNextChar = function () {
+    }
+    peekNextChar() {
         if (this.position >= this.len) {
             return '';
         }
         return this.text[this.position];
-    };
-    Lexer.prototype.advanceChar = function () {
+    }
+    advanceChar() {
         this.position += 1;
-    };
-    Lexer.prototype.advanceWhiteSpace = function () {
+    }
+    advanceWhiteSpace() {
         while (isWhiteSpace(this.text[this.position])) {
             this.position += 1;
         }
-    };
-    Lexer.prototype.parseIdentifier = function () {
-        var str = '';
-        var state = 1;
+    }
+    parseIdentifier() {
+        let str = '';
+        let state = 1;
         for (;;) {
-            var c = this.peekNextChar();
+            let c = this.peekNextChar();
             if (state === 1) {
                 if (isAlphabetic(c)) {
                     state = 2;
@@ -82,13 +64,13 @@ var Lexer = (function () {
             this.advanceChar();
         }
         return str;
-    };
-    Lexer.prototype.parseNumber = function () {
-        var state = 1;
-        var str = '';
-        var accept = true;
+    }
+    parseNumber() {
+        let state = 1;
+        let str = '';
+        let accept = true;
         while (accept) {
-            var c = this.peekNextChar();
+            let c = this.peekNextChar();
             switch (state) {
                 case 1:
                     if (isDigit(c)) {
@@ -98,7 +80,7 @@ var Lexer = (function () {
                         state = 2;
                     }
                     else {
-                        throw new LexerError("Expecting digit or + or -, got " + c);
+                        throw new LexerError(`Expecting digit or + or -, got ${c}`);
                     }
                     break;
                 case 2:
@@ -106,7 +88,7 @@ var Lexer = (function () {
                         state = 3;
                     }
                     else {
-                        throw new LexerError("Expecting digit got " + c);
+                        throw new LexerError(`Expecting digit got ${c}`);
                     }
                     break;
                 case 3:
@@ -125,7 +107,7 @@ var Lexer = (function () {
                         state = 5;
                     }
                     else {
-                        throw new LexerError("Expecting digit got " + c);
+                        throw new LexerError(`Expecting digit got ${c}`);
                     }
                     break;
                 case 5:
@@ -141,7 +123,7 @@ var Lexer = (function () {
                         state = 7;
                     }
                     else {
-                        throw new LexerError("Expecting \"+\" or \"-\" got " + c);
+                        throw new LexerError(`Expecting "+" or "-" got ${c}`);
                     }
                     break;
                 case 7:
@@ -149,7 +131,7 @@ var Lexer = (function () {
                         state = 8;
                     }
                     else {
-                        throw new LexerError("Expecting digit got " + c);
+                        throw new LexerError(`Expecting digit got ${c}`);
                     }
                     break;
                 case 8:
@@ -158,7 +140,7 @@ var Lexer = (function () {
                     }
                     break;
                 default:
-                    throw new LexerError("Unknown state " + state);
+                    throw new LexerError(`Unknown state ${state}`);
             }
             if (accept) {
                 str += c;
@@ -166,10 +148,10 @@ var Lexer = (function () {
             }
         }
         return str;
-    };
-    Lexer.prototype.nextToken = function () {
+    }
+    nextToken() {
         this.advanceWhiteSpace();
-        var c = this.peekNextChar();
+        const c = this.peekNextChar();
         if (c === '') {
             return {
                 kind: TokenKind.EOF,
@@ -177,10 +159,10 @@ var Lexer = (function () {
             };
         }
         if (isDigit(c)) {
-            var value = this.parseNumber();
+            const value = this.parseNumber();
             return {
                 kind: TokenKind.Number,
-                str: "" + value,
+                str: `${value}`,
                 value: parseFloat(value)
             };
         }
@@ -262,17 +244,15 @@ var Lexer = (function () {
             };
         }
         else if (isAlphabetic(c)) {
-            var str = this.parseIdentifier();
+            const str = this.parseIdentifier();
             return {
                 kind: TokenKind.Identifier,
                 str: str
             };
         }
-        throw new LexerError("Invalid character '" + c + "'");
-    };
-    return Lexer;
-}());
-export { Lexer };
+        throw new LexerError(`Invalid character '${c}'`);
+    }
+}
 export var TokenKind;
 (function (TokenKind) {
     TokenKind[TokenKind["Number"] = 0] = "Number";

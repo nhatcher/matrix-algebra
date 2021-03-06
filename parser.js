@@ -1,52 +1,34 @@
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        if (typeof b !== "function" && b !== null)
-            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 import { Lexer, TokenKind } from './lexer.js';
 function isOperation(s) {
     return ['+', '-', '*', '/', '^'].includes(s);
 }
-var ParserError = (function (_super) {
-    __extends(ParserError, _super);
-    function ParserError(message) {
-        var _this = _super.call(this, "[Parser]: " + message) || this;
-        _this.name = 'ParserError';
-        return _this;
+class ParserError extends Error {
+    constructor(message) {
+        super(`[Parser]: ${message}`);
+        this.name = 'ParserError';
     }
-    return ParserError;
-}(Error));
-var Parser = (function () {
-    function Parser(text) {
+}
+export class Parser {
+    constructor(text) {
         this.text = text;
         this.lexer = new Lexer(text);
         this.currentToken = this.lexer.nextToken();
         this.peekToken = this.lexer.nextToken();
     }
-    Parser.prototype.advanceTokens = function () {
+    advanceTokens() {
         this.currentToken = this.peekToken;
         this.peekToken = this.lexer.nextToken();
-    };
-    Parser.prototype.readCurrentToken = function () {
+    }
+    readCurrentToken() {
         return this.currentToken;
-    };
-    Parser.prototype.prefix_binding_power = function (op) {
+    }
+    prefix_binding_power(op) {
         if (op === '+' || op === '-') {
             return [null, 9];
         }
-        throw new ParserError("Bad op: " + op);
-    };
-    Parser.prototype.postfix_binding_power = function (op) {
+        throw new ParserError(`Bad op: ${op}`);
+    }
+    postfix_binding_power(op) {
         if (op === '!') {
             return [11, null];
         }
@@ -54,8 +36,8 @@ var Parser = (function () {
             return [11, null];
         }
         return null;
-    };
-    Parser.prototype.infix_binding_power = function (op) {
+    }
+    infix_binding_power(op) {
         if (op === '=') {
             return [2, 1];
         }
@@ -72,53 +54,51 @@ var Parser = (function () {
             return [9, 10];
         }
         return null;
-    };
-    Parser.prototype.parseVector = function () {
-        var args = [];
-        console.log('va', this.currentToken);
+    }
+    parseVector() {
+        const args = [];
         this.advanceTokens();
         for (;;) {
             args.push(this.parseExpression(0));
-            var k = this.readCurrentToken().kind;
+            const k = this.readCurrentToken().kind;
             if (k === TokenKind[']']) {
                 break;
             }
             if (k !== TokenKind[',']) {
-                throw new ParserError("Expecting ',' found '" + this.readCurrentToken().str + "'");
+                throw new ParserError(`Expecting ',' found '${this.readCurrentToken().str}'`);
             }
             this.advanceTokens();
         }
         this.advanceTokens();
         return {
             type: 'vector',
-            args: args
+            args
         };
-    };
-    Parser.prototype.parseMatrix = function () {
-        var matrix = [];
+    }
+    parseMatrix() {
+        const matrix = [];
         this.advanceTokens();
         for (;;) {
             matrix.push(this.parseVector().args);
-            var kind = this.currentToken.kind;
+            const kind = this.currentToken.kind;
             if (kind === TokenKind[']']) {
                 this.advanceTokens();
                 break;
             }
             else if (kind !== TokenKind[',']) {
-                throw new ParserError("(M) Expecting ',' found '" + this.peekToken.str + "'");
+                throw new ParserError(`(M) Expecting ',' found '${this.peekToken.str}'`);
             }
             this.advanceTokens();
         }
-        console.log(matrix);
         return {
             type: 'matrix',
-            matrix: matrix
+            matrix
         };
-    };
-    Parser.prototype.parseExpression = function (bindingPower) {
-        var token = this.currentToken;
-        var kind = token.kind;
-        var lhs;
+    }
+    parseExpression(bindingPower) {
+        const token = this.currentToken;
+        const kind = token.kind;
+        let lhs;
         if (kind === TokenKind.Number) {
             lhs = {
                 type: 'number',
@@ -133,11 +113,11 @@ var Parser = (function () {
             };
             this.advanceTokens();
             if (this.currentToken.kind === TokenKind['(']) {
-                var args = [];
+                const args = [];
                 this.advanceTokens();
                 for (;;) {
                     args.push(this.parseExpression(0));
-                    var k = this.readCurrentToken().kind;
+                    const k = this.readCurrentToken().kind;
                     if (k === TokenKind[')'] || k === TokenKind[',']) {
                         break;
                     }
@@ -145,7 +125,7 @@ var Parser = (function () {
                 lhs = {
                     type: 'function',
                     name: token.str,
-                    args: args
+                    args
                 };
                 this.advanceTokens();
             }
@@ -154,12 +134,12 @@ var Parser = (function () {
             this.advanceTokens();
             lhs = this.parseExpression(0);
             if (this.currentToken.kind !== TokenKind[')']) {
-                throw new ParserError("Expecting ')' found " + this.currentToken.kind);
+                throw new ParserError(`Expecting ')' found ${this.currentToken.kind}`);
             }
             this.advanceTokens();
         }
         else if (kind === TokenKind['[']) {
-            var k = this.peekToken;
+            const k = this.peekToken;
             if (k.kind === TokenKind['[']) {
                 lhs = this.parseMatrix();
             }
@@ -169,41 +149,41 @@ var Parser = (function () {
         }
         else if (token.str === '-' || token.str === '+') {
             this.advanceTokens();
-            var r_bp = this.prefix_binding_power(token.str)[1];
-            var rhs = this.parseExpression(r_bp);
+            const r_bp = this.prefix_binding_power(token.str)[1];
+            const rhs = this.parseExpression(r_bp);
             lhs = {
                 type: token.str === '-' ? 'u-' : 'u+',
                 rhs: rhs
             };
         }
         else {
-            throw new ParserError("Unexpected token (expecting number, atom or prefix). Found: " + token.str);
+            throw new ParserError(`Unexpected token (expecting number, atom or prefix). Found: ${token.str}`);
         }
         for (;;) {
-            var opToken = this.currentToken;
+            const opToken = this.currentToken;
             if (opToken.kind === TokenKind.EOF || opToken.kind === TokenKind[')'] || opToken.kind === TokenKind[','] || opToken.kind === TokenKind[']']) {
                 break;
             }
             else if (!isOperation(opToken.str)) {
-                throw new ParserError("Unexpected token (expecting operator) " + opToken.str);
+                throw new ParserError(`Unexpected token (expecting operator) ${opToken.str}`);
             }
-            var postfix = this.postfix_binding_power(opToken.str);
+            const postfix = this.postfix_binding_power(opToken.str);
             if (postfix) {
-                var leftBindingPower = postfix[0];
+                const leftBindingPower = postfix[0];
                 if (leftBindingPower < bindingPower) {
                     break;
                 }
                 this.advanceTokens();
                 continue;
             }
-            var infix = this.infix_binding_power(opToken.str);
+            const infix = this.infix_binding_power(opToken.str);
             if (infix) {
-                var leftBindingPower = infix[0], rightBidingPower = infix[1];
+                const [leftBindingPower, rightBidingPower] = infix;
                 if (leftBindingPower < bindingPower) {
                     break;
                 }
                 this.advanceTokens();
-                var rhs = this.parseExpression(rightBidingPower);
+                const rhs = this.parseExpression(rightBidingPower);
                 lhs = {
                     type: opToken.str,
                     lhs: lhs,
@@ -214,26 +194,26 @@ var Parser = (function () {
             break;
         }
         return lhs;
-    };
-    Parser.prototype.parseDefinition = function () {
+    }
+    parseDefinition() {
         if (this.peekToken.kind !== TokenKind['=']) {
-            throw new ParserError("Expecting '=' found " + this.peekToken.str);
+            throw new ParserError(`Expecting '=' found ${this.peekToken.str}`);
         }
-        var lhs = {
+        const lhs = {
             type: 'variable',
             name: this.currentToken.str
         };
         this.advanceTokens();
         this.advanceTokens();
-        var rhs = this.parseExpression(0);
+        const rhs = this.parseExpression(0);
         return {
             type: 'definition',
-            lhs: lhs,
-            rhs: rhs
+            lhs,
+            rhs
         };
-    };
-    Parser.prototype.parse = function () {
-        var statements = [];
+    }
+    parse() {
+        const statements = [];
         while (this.currentToken.kind !== TokenKind.EOF) {
             if (this.currentToken.kind === TokenKind.Identifier && this.peekToken.kind === TokenKind['=']) {
                 statements.push(this.parseDefinition());
@@ -243,8 +223,6 @@ var Parser = (function () {
             }
         }
         return statements;
-    };
-    return Parser;
-}());
-export { Parser };
+    }
+}
 //# sourceMappingURL=parser.js.map

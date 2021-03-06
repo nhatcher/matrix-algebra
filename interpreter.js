@@ -1,31 +1,18 @@
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        if (typeof b !== "function" && b !== null)
-            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 import { Parser } from "./parser.js";
-var InterpreterError = (function (_super) {
-    __extends(InterpreterError, _super);
-    function InterpreterError(message) {
-        var _this = _super.call(this, "[Interpreter]: " + message) || this;
-        _this.name = 'InterpreterError';
-        return _this;
+import { init } from "./linear.js";
+let wasm;
+init().then(w => {
+    wasm = w;
+});
+class InterpreterError extends Error {
+    constructor(message) {
+        super(`[Interpreter]: ${message}`);
+        this.name = 'InterpreterError';
     }
-    return InterpreterError;
-}(Error));
+}
 export function evaluate__str(value, context) {
     try {
-        var t = new Parser(value);
+        const t = new Parser(value);
         return evaluate_stmts(t.parse(), context);
     }
     catch (e) {
@@ -33,11 +20,11 @@ export function evaluate__str(value, context) {
     }
 }
 function evaluate_stmts(stmts, context) {
-    var result = [];
-    for (var i = 0; i < stmts.length; i++) {
-        var r = evaluate(stmts[i], context);
+    let result = [];
+    for (let i = 0; i < stmts.length; i++) {
+        const r = evaluate(stmts[i], context);
         if (r.type === 'number') {
-            result.push("" + r.value);
+            result.push(`${r.value}`);
         }
         else {
             result.push(JSON.stringify(r.value));
@@ -47,13 +34,13 @@ function evaluate_stmts(stmts, context) {
 }
 function evaluate(stmt, context) {
     if (stmt.type === 'definition') {
-        var x = evaluate(stmt.rhs, context);
+        const x = evaluate(stmt.rhs, context);
         context[stmt.lhs.name] = x;
         return x;
     }
     else if (stmt.type === '+') {
-        var lhs = evaluate(stmt.lhs, context);
-        var rhs = evaluate(stmt.rhs, context);
+        const lhs = evaluate(stmt.lhs, context);
+        const rhs = evaluate(stmt.rhs, context);
         if (lhs.type === 'number' && rhs.type === 'number') {
             return {
                 type: 'number',
@@ -61,13 +48,13 @@ function evaluate(stmt, context) {
             };
         }
         else if (lhs.type === 'vector' && rhs.type === 'vector') {
-            var vector1 = lhs.value;
-            var vector2 = rhs.value;
-            var N1 = vector1.length;
-            var N2 = vector2.length;
+            const vector1 = lhs.value;
+            const vector2 = rhs.value;
+            const N1 = vector1.length;
+            const N2 = vector2.length;
             if (N1 === N2) {
-                var result = Array(N1);
-                for (var i = 0; i < N1; i++) {
+                const result = Array(N1);
+                for (let i = 0; i < N1; i++) {
                     result[i] = vector1[i] + vector2[i];
                 }
                 return {
@@ -80,21 +67,21 @@ function evaluate(stmt, context) {
             }
         }
         else if (lhs.type === 'matrix' && rhs.type === 'matrix') {
-            var matrix1 = lhs.value;
-            var matrix2 = rhs.value;
-            var width = lhs.width;
-            var height = lhs.height;
+            const matrix1 = lhs.value;
+            const matrix2 = rhs.value;
+            const width = lhs.width;
+            const height = lhs.height;
             if (lhs.width === width && lhs.height === height) {
-                var N = lhs.width * lhs.height;
-                var result = Array(N);
-                for (var i = 0; i < N; i++) {
+                const N = lhs.width * lhs.height;
+                const result = Array(N);
+                for (let i = 0; i < N; i++) {
                     result[i] = matrix1[i] + matrix2[i];
                 }
                 return {
                     type: 'matrix',
                     value: result,
-                    width: width,
-                    height: height
+                    width,
+                    height
                 };
             }
             else {
@@ -106,8 +93,8 @@ function evaluate(stmt, context) {
         }
     }
     else if (stmt.type === '-') {
-        var lhs = evaluate(stmt.lhs, context);
-        var rhs = evaluate(stmt.rhs, context);
+        const lhs = evaluate(stmt.lhs, context);
+        const rhs = evaluate(stmt.rhs, context);
         if (lhs.type === 'number' && rhs.type === 'number') {
             return {
                 type: 'number',
@@ -115,13 +102,13 @@ function evaluate(stmt, context) {
             };
         }
         else if (lhs.type === 'vector' && rhs.type === 'vector') {
-            var vector1 = lhs.value;
-            var vector2 = rhs.value;
-            var N1 = vector1.length;
-            var N2 = vector2.length;
-            if (N1 == N2) {
-                var result = Array(N1);
-                for (var i = 0; i < N1; i++) {
+            const vector1 = lhs.value;
+            const vector2 = rhs.value;
+            const N1 = vector1.length;
+            const N2 = vector2.length;
+            if (N1 === N2) {
+                const result = Array(N1);
+                for (let i = 0; i < N1; i++) {
                     result[i] = vector1[i] - vector2[i];
                 }
             }
@@ -130,21 +117,21 @@ function evaluate(stmt, context) {
             }
         }
         else if (lhs.type === 'matrix' && rhs.type === 'matrix') {
-            var matrix1 = lhs.value;
-            var matrix2 = rhs.value;
-            var width = lhs.width;
-            var height = lhs.height;
+            const matrix1 = lhs.value;
+            const matrix2 = rhs.value;
+            const width = lhs.width;
+            const height = lhs.height;
             if (lhs.width === width && lhs.height === height) {
-                var N = lhs.width * lhs.height;
-                var result = Array(N);
-                for (var i = 0; i < N; i++) {
+                const N = lhs.width * lhs.height;
+                const result = Array(N);
+                for (let i = 0; i < N; i++) {
                     result[i] = matrix1[i] - matrix2[i];
                 }
                 return {
                     type: 'matrix',
                     value: result,
-                    width: width,
-                    height: height
+                    width,
+                    height
                 };
             }
             else {
@@ -156,8 +143,8 @@ function evaluate(stmt, context) {
         }
     }
     else if (stmt.type === '*') {
-        var lhs = evaluate(stmt.lhs, context);
-        var rhs = evaluate(stmt.rhs, context);
+        const lhs = evaluate(stmt.lhs, context);
+        const rhs = evaluate(stmt.rhs, context);
         if (lhs.type === 'number' && rhs.type === 'number') {
             return {
                 type: 'number',
@@ -165,10 +152,10 @@ function evaluate(stmt, context) {
             };
         }
         else if (lhs.type === 'number' && rhs.type === 'vector') {
-            var N = rhs.value.length;
-            var r = Array(N);
-            var v = lhs.value;
-            for (var i = 0; i < N; i++) {
+            const N = rhs.value.length;
+            const r = Array(N);
+            const v = lhs.value;
+            for (let i = 0; i < N; i++) {
                 r[i] = v * rhs.value[i];
             }
             return {
@@ -177,10 +164,10 @@ function evaluate(stmt, context) {
             };
         }
         else if (lhs.type === 'vector' && rhs.type === 'number') {
-            var N = lhs.value.length;
-            var r = Array(N);
-            var v = rhs.value;
-            for (var i = 0; i < N; i++) {
+            const N = lhs.value.length;
+            const r = Array(N);
+            const v = rhs.value;
+            for (let i = 0; i < N; i++) {
                 r[i] = v * lhs.value[i];
             }
             return {
@@ -188,13 +175,32 @@ function evaluate(stmt, context) {
                 value: r
             };
         }
+        else if (lhs.type === 'matrix' && rhs.type === 'matrix') {
+            const matrix1 = lhs.value;
+            const matrix2 = rhs.value;
+            const width = lhs.width;
+            const height = lhs.height;
+            if (lhs.width === width && lhs.height === height) {
+                const N = lhs.width * lhs.height;
+                const result = wasm.multiply(matrix1, matrix2, width);
+                return {
+                    type: 'matrix',
+                    value: result,
+                    width,
+                    height
+                };
+            }
+            else {
+                throw new InterpreterError('Cannot add matrices of different sizes');
+            }
+        }
         else {
-            throw new InterpreterError('Can only multiply numbers');
+            throw new InterpreterError('Wrong types to multiply');
         }
     }
     else if (stmt.type === '/') {
-        var lhs = evaluate(stmt.lhs, context);
-        var rhs = evaluate(stmt.rhs, context);
+        const lhs = evaluate(stmt.lhs, context);
+        const rhs = evaluate(stmt.rhs, context);
         if (lhs.type === 'number' && rhs.type === 'number') {
             return {
                 type: 'number',
@@ -202,10 +208,10 @@ function evaluate(stmt, context) {
             };
         }
         else if (lhs.type === 'vector' && rhs.type === 'number') {
-            var N = lhs.value.length;
-            var r = Array(N);
-            var v = rhs.value;
-            for (var i = 0; i < N; i++) {
+            const N = lhs.value.length;
+            const r = Array(N);
+            const v = rhs.value;
+            for (let i = 0; i < N; i++) {
                 r[i] = lhs.value[i] / v;
             }
             return {
@@ -213,13 +219,32 @@ function evaluate(stmt, context) {
                 value: r
             };
         }
+        else if (lhs.type === 'matrix' && rhs.type === 'matrix') {
+            const matrix1 = lhs.value;
+            const matrix2 = rhs.value;
+            const width = lhs.width;
+            const height = lhs.height;
+            if (lhs.width === width && lhs.height === height) {
+                const N = lhs.width * lhs.height;
+                const result = wasm.multiply(matrix1, wasm.inverse(matrix2, width), width);
+                return {
+                    type: 'matrix',
+                    value: result,
+                    width,
+                    height
+                };
+            }
+            else {
+                throw new InterpreterError('Cannot add matrices of different sizes');
+            }
+        }
         else {
             throw new InterpreterError('Can only divide numbers');
         }
     }
     else if (stmt.type === '^') {
-        var lhs = evaluate(stmt.lhs, context);
-        var rhs = evaluate(stmt.rhs, context);
+        const lhs = evaluate(stmt.lhs, context);
+        const rhs = evaluate(stmt.rhs, context);
         if (lhs.type === 'number' && rhs.type === 'number') {
             return {
                 type: 'number',
@@ -231,9 +256,9 @@ function evaluate(stmt, context) {
         }
     }
     else if (stmt.type === 'variable') {
-        var name_1 = stmt.name;
-        if (!(name_1 in context)) {
-            throw new InterpreterError("Undefined variable: \"" + name_1 + "\"");
+        const name = stmt.name;
+        if (!(name in context)) {
+            throw new InterpreterError(`Undefined variable: "${name}"`);
         }
         return context[stmt.name];
     }
@@ -244,12 +269,12 @@ function evaluate(stmt, context) {
         };
     }
     else if (stmt.type === 'vector') {
-        var N = stmt.args.length;
-        var r = Array(N);
-        for (var i = 0; i < N; i++) {
-            var t = evaluate(stmt.args[i], context);
+        const N = stmt.args.length;
+        const r = Array(N);
+        for (let i = 0; i < N; i++) {
+            const t = evaluate(stmt.args[i], context);
             if (t.type !== 'number') {
-                throw new InterpreterError("Expected number got '" + t.type + "'");
+                throw new InterpreterError(`Expected number got '${t.type}'`);
             }
             r[i] = t.value;
         }
@@ -259,14 +284,14 @@ function evaluate(stmt, context) {
         };
     }
     else if (stmt.type === 'matrix') {
-        var width = stmt.matrix.length;
-        var height = stmt.matrix[0].length;
-        var r = Array(width * height);
-        for (var i = 0; i < width; i++) {
-            for (var j = 0; j < height; j++) {
-                var t = evaluate(stmt.matrix[i][j], context);
+        const width = stmt.matrix.length;
+        const height = stmt.matrix[0].length;
+        const r = Array(width * height);
+        for (let i = 0; i < width; i++) {
+            for (let j = 0; j < height; j++) {
+                const t = evaluate(stmt.matrix[i][j], context);
                 if (t.type !== 'number') {
-                    throw new InterpreterError("Expected number got '" + t.type + "'");
+                    throw new InterpreterError(`Expected number got '${t.type}'`);
                 }
                 r[i + j * width] = t.value;
             }
@@ -274,12 +299,12 @@ function evaluate(stmt, context) {
         return {
             type: 'matrix',
             value: r,
-            width: width,
-            height: height
+            width,
+            height
         };
     }
     else if (stmt.type === 'u-') {
-        var result = evaluate(stmt.rhs, context);
+        const result = evaluate(stmt.rhs, context);
         if (result.type === 'number') {
             return {
                 type: 'number',
@@ -294,13 +319,13 @@ function evaluate(stmt, context) {
         return evaluate(stmt.rhs, context);
     }
     else if (stmt.type === 'function') {
-        var name_2 = stmt.name;
-        if (name_2 === 'sin') {
-            var args = stmt.args;
+        const name = stmt.name;
+        if (name === 'sin') {
+            const args = stmt.args;
             if (args.length !== 1) {
                 throw new InterpreterError('Wrong number of argument for function sin');
             }
-            var result = evaluate(args[0], context);
+            const result = evaluate(args[0], context);
             if (result.type === 'number') {
                 return {
                     type: 'number',
@@ -311,12 +336,12 @@ function evaluate(stmt, context) {
                 throw new InterpreterError('Not implemented');
             }
         }
-        else if (name_2 === 'cos') {
-            var args = stmt.args;
+        else if (name === 'cos') {
+            const args = stmt.args;
             if (args.length !== 1) {
                 throw new InterpreterError('Wrong number of argument for function sin');
             }
-            var result = evaluate(args[0], context);
+            const result = evaluate(args[0], context);
             if (result.type === 'number') {
                 return {
                     type: 'number',
@@ -327,12 +352,12 @@ function evaluate(stmt, context) {
                 throw new InterpreterError('Not implemented');
             }
         }
-        else if (name_2 === 'tan') {
-            var args = stmt.args;
+        else if (name === 'tan') {
+            const args = stmt.args;
             if (args.length !== 1) {
                 throw new InterpreterError('Wrong number of argument for function sin');
             }
-            var result = evaluate(args[0], context);
+            const result = evaluate(args[0], context);
             if (result.type === 'number') {
                 return {
                     type: 'number',
@@ -344,9 +369,9 @@ function evaluate(stmt, context) {
             }
         }
         else {
-            throw new InterpreterError("Undefined function \"" + name_2 + "\"");
+            throw new InterpreterError(`Undefined function "${name}"`);
         }
     }
-    throw new InterpreterError("Unexpected node type: " + stmt.type);
+    throw new InterpreterError(`Unexpected node type: ${stmt.type}`);
 }
 //# sourceMappingURL=interpreter.js.map

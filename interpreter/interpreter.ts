@@ -22,7 +22,7 @@ interface Vector {
 
 interface Matrix {
     type: 'matrix',
-    value: number[],
+    value: Float64Array,
     width: number,
     height: number
 }
@@ -36,7 +36,21 @@ class InterpreterError extends Error {
     }
 }
 
-export function evaluate__str(value: string, context: any): string {
+function matrixToLatex(A: Float64Array, N:number, prec=15): string {
+    let mat = [];
+    for (let i=0; i<N; i++) {
+      let line = [];
+      for (let j=0; j<N; j++) {
+        const val = parseFloat(A[i + N*j].toFixed(prec));
+        line.push(`${val}`);
+      }
+      mat.push(line.join(' & '));
+    }
+    return '\\begin{pmatrix}' + mat.join('\\\\') + '\\end{pmatrix}';
+  };
+
+
+export function evaluate_str(value: string, context: any): string {
     try {
         const t = new Parser(value);
         return evaluate_stmts(t.parse(), context);
@@ -49,10 +63,16 @@ function evaluate_stmts(stmts: Node[], context: any): string {
     let result = [];
     for (let i = 0; i < stmts.length; i++) {
         const r = evaluate(stmts[i], context);
-        if (r.type === 'number') {
+        const t = r.type;
+        if (t === 'number') {
             result.push(`${r.value}`);
-        } else {
+        } else if (t === 'vector') {
             result.push(JSON.stringify(r.value));
+        } else if (r.type === 'matrix') {
+            // We can't use t === 'matrix' because tsc trips on this.
+            result.push(matrixToLatex(r.value, r.width));
+        } else {
+            throw new InterpreterError(`Bad type: ${t}`);
         }
     }
     return result.join('\n');
@@ -95,7 +115,7 @@ function evaluate(stmt: Node, context: any): Value {
             const height = lhs.height;
             if (lhs.width === width && lhs.height === height) {
                 const N = lhs.width*lhs.height;
-                const result = Array(N);
+                const result = new Float64Array(N);
                 for (let i = 0; i < N; i++) {
                     result[i] = matrix1[i] + matrix2[i];
                 }
@@ -139,7 +159,7 @@ function evaluate(stmt: Node, context: any): Value {
             const height = lhs.height;
             if (lhs.width === width && lhs.height === height) {
                 const N = lhs.width*lhs.height;
-                const result = Array(N);
+                const result = new Float64Array(N);
                 for (let i = 0; i < N; i++) {
                     result[i] = matrix1[i] - matrix2[i];
                 }
@@ -202,6 +222,34 @@ function evaluate(stmt: Node, context: any): Value {
             } else {
                 throw new InterpreterError('Cannot add matrices of different sizes');
             } 
+        } else if (lhs.type === 'number' && rhs.type === 'matrix') {
+            const value = lhs.value;
+            const matrix = rhs.value;
+            const N = rhs.width * rhs.height;
+            const result = new Float64Array(N);
+            for (let i = 0; i < N; i++) {
+                result[i] = value*matrix[i];
+            }
+            return {
+                type: 'matrix',
+                value: result,
+                width: rhs.width,
+                height: rhs.height
+            }
+        } else if (rhs.type === 'number' && lhs.type === 'matrix') {
+            const value = rhs.value;
+            const matrix = lhs.value;
+            const N = lhs.width * lhs.height;
+            const result = new Float64Array(N);
+            for (let i = 0; i < N; i++) {
+                result[i] = value*matrix[i];
+            }
+            return {
+                type: 'matrix',
+                value: result,
+                width: lhs.width,
+                height: lhs.height
+            }
         } else {
             throw new InterpreterError('Wrong types to multiply');
         }
@@ -286,7 +334,7 @@ function evaluate(stmt: Node, context: any): Value {
     } else if (stmt.type === 'matrix') {
         const width = stmt.matrix.length;
         const height = stmt.matrix[0].length;
-        const r = Array(width*height);
+        const r = new Float64Array(width*height);
         for (let i = 0; i < width; i++) {
             for (let j = 0; j < height; j++) {
                 const t = evaluate(stmt.matrix[i][j], context);
@@ -354,6 +402,25 @@ function evaluate(stmt: Node, context: any): Value {
                 return {
                     type: 'number',
                     value: Math.tan(result.value)
+                }
+            } else {
+                throw new InterpreterError('Not implemented');
+            }
+        } else if (name === 'det') {
+            const args = stmt.args;
+            if (args.length !== 1) {
+                throw new InterpreterError('Wrong number of argument for function sin');
+            }
+            const result = evaluate(args[0], context);
+            if (result.type === 'number') {
+                return {
+                    type: 'number',
+                    value: result.value
+                }
+            } else if (result.type === 'matrix') {
+                return {
+                    type: 'number',
+                    value: wasm.determinant(result.value, result.width)
                 }
             } else {
                 throw new InterpreterError('Not implemented');

@@ -1,5 +1,14 @@
 import { Parser, Node } from "./parser.js";
+import {init} from "./linear.js";
 
+
+// FIXME: In the future we could use top level await:
+// https://github.com/tc39/proposal-top-level-await
+// At the time of writing is on stage 3 and implemented on Chrome 89
+let wasm: any;
+init().then(w => {
+    wasm = w;
+})
 
 interface Number {
     type: 'number',
@@ -115,7 +124,7 @@ function evaluate(stmt: Node, context: any): Value {
             const vector2 = rhs.value;
             const N1 = vector1.length;
             const N2 = vector2.length;
-            if (N1 == N2) {
+            if (N1 === N2) {
                 const result = Array(N1);
                 for (let i = 0; i< N1; i++) {
                     result[i] = vector1[i] - vector2[i];
@@ -123,7 +132,7 @@ function evaluate(stmt: Node, context: any): Value {
             } else {
                 throw new InterpreterError('Cannot subtract two vectors of different sizes');
             }
-        }  else if (lhs.type === 'matrix' && rhs.type === 'matrix') {
+        } else if (lhs.type === 'matrix' && rhs.type === 'matrix') {
             const matrix1 = lhs.value;
             const matrix2 = rhs.value;
             const width = lhs.width;
@@ -143,7 +152,7 @@ function evaluate(stmt: Node, context: any): Value {
             } else {
                 throw new InterpreterError('Cannot add matrices of different sizes');
             }
-        }else {
+        } else {
             throw new InterpreterError('Cannot subtract two different objects');
         }
     } else if (stmt.type === '*') {
@@ -176,8 +185,25 @@ function evaluate(stmt: Node, context: any): Value {
                 type: 'vector',
                 value: r
             }
+        } else if (lhs.type === 'matrix' && rhs.type === 'matrix') {
+            const matrix1 = lhs.value;
+            const matrix2 = rhs.value;
+            const width = lhs.width;
+            const height = lhs.height;
+            if (lhs.width === width && lhs.height === height) {
+                const N = lhs.width*lhs.height;
+                const result = wasm.multiply(matrix1, matrix2, width);
+                return {
+                    type: 'matrix',
+                    value: result,
+                    width,
+                    height
+                }
+            } else {
+                throw new InterpreterError('Cannot add matrices of different sizes');
+            } 
         } else {
-            throw new InterpreterError('Can only multiply numbers');
+            throw new InterpreterError('Wrong types to multiply');
         }
     } else if (stmt.type === '/') {
         // TODO division by 0
@@ -199,6 +225,23 @@ function evaluate(stmt: Node, context: any): Value {
                 type: 'vector',
                 value: r
             }
+        } else if (lhs.type === 'matrix' && rhs.type === 'matrix') {
+            const matrix1 = lhs.value;
+            const matrix2 = rhs.value;
+            const width = lhs.width;
+            const height = lhs.height;
+            if (lhs.width === width && lhs.height === height) {
+                const N = lhs.width*lhs.height;
+                const result = wasm.multiply(matrix1, wasm.inverse(matrix2, width), width);
+                return {
+                    type: 'matrix',
+                    value: result,
+                    width,
+                    height
+                }
+            } else {
+                throw new InterpreterError('Cannot add matrices of different sizes');
+            } 
         } else {
             throw new InterpreterError('Can only divide numbers');
         }

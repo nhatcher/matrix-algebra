@@ -132,7 +132,6 @@ export class Parser {
 
     parseVector(): {type:'vector', args: Node[]} {
         const args: Node[] = [];
-        console.log('va', this.currentToken);
         this.advanceTokens();
         for (;;) {
             args.push(this.parseExpression(0));
@@ -167,7 +166,6 @@ export class Parser {
             }
             this.advanceTokens();
         }
-        console.log(matrix);
         return {
             type: 'matrix',
             matrix

@@ -1,4 +1,5 @@
 import { evaluate_str } from './interpreter.js';
+import { matrixToLatex } from './util.js';
 
 //import { Lexer, TokenKind } from './lexer.js';
 
@@ -17,6 +18,7 @@ let level = 0;
 const context = {};
 
 //
+
 function addCommand(value) {
   const command = document.createElement('div');
   command.className = 'command';
@@ -26,14 +28,23 @@ function addCommand(value) {
 }
 
 function processCommand(value) {
-  const text = evaluate_str(value, context);
-  say(text, true);
+  try {
+    const result = evaluate_str(value, context);
+    console.log(result);
+    if (result.type === 'matrix') {
+      say(matrixToLatex(result.value, result.width), true);
+    } else {
+      say(JSON.stringify(result.value))
+    }
+  } catch (e) {
+    console.trace();
+    say(e.message)
+  }
 }
 
 function say(text, process_latex=false) {
   const node = document.createElement('div');
   if (process_latex) {
-    console.log(text);
     katex.render(text, node, {
       throwOnError: true
     });

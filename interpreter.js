@@ -10,47 +10,11 @@ class InterpreterError extends Error {
         this.name = 'InterpreterError';
     }
 }
-function matrixToLatex(A, N, prec = 15) {
-    let mat = [];
-    for (let i = 0; i < N; i++) {
-        let line = [];
-        for (let j = 0; j < N; j++) {
-            const val = parseFloat(A[i + N * j].toFixed(prec));
-            line.push(`${val}`);
-        }
-        mat.push(line.join(' & '));
-    }
-    return '\\begin{pmatrix}' + mat.join('\\\\') + '\\end{pmatrix}';
-}
-;
 export function evaluate_str(value, context) {
-    try {
-        const t = new Parser(value);
-        return evaluate_stmts(t.parse(), context);
-    }
-    catch (e) {
-        return e.message;
-    }
-}
-function evaluate_stmts(stmts, context) {
-    let result = [];
-    for (let i = 0; i < stmts.length; i++) {
-        const r = evaluate(stmts[i], context);
-        const t = r.type;
-        if (t === 'number') {
-            result.push(`${r.value}`);
-        }
-        else if (t === 'vector') {
-            result.push(JSON.stringify(r.value));
-        }
-        else if (r.type === 'matrix') {
-            result.push(matrixToLatex(r.value, r.width));
-        }
-        else {
-            throw new InterpreterError(`Bad type: ${t}`);
-        }
-    }
-    return result.join('\n');
+    const t = new Parser(value);
+    const stmts = t.parse();
+    console.log(stmts);
+    return evaluate(stmts[0], context);
 }
 function evaluate(stmt, context) {
     if (stmt.type === 'definition') {

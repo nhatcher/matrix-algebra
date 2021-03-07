@@ -36,47 +36,32 @@ class InterpreterError extends Error {
     }
 }
 
-function matrixToLatex(A: Float64Array, N:number, prec=15): string {
-    let mat = [];
-    for (let i=0; i<N; i++) {
-      let line = [];
-      for (let j=0; j<N; j++) {
-        const val = parseFloat(A[i + N*j].toFixed(prec));
-        line.push(`${val}`);
-      }
-      mat.push(line.join(' & '));
-    }
-    return '\\begin{pmatrix}' + mat.join('\\\\') + '\\end{pmatrix}';
-  };
 
-
-export function evaluate_str(value: string, context: any): string {
-    try {
-        const t = new Parser(value);
-        return evaluate_stmts(t.parse(), context);
-    } catch(e) {
-        return e.message;
-    }
+export function evaluate_str(value: string, context: any): Value {
+    const t = new Parser(value);
+    const stmts = t.parse();
+    console.log(stmts);
+    return evaluate(stmts[0], context);
 }
 
-function evaluate_stmts(stmts: Node[], context: any): string {
-    let result = [];
-    for (let i = 0; i < stmts.length; i++) {
-        const r = evaluate(stmts[i], context);
-        const t = r.type;
-        if (t === 'number') {
-            result.push(`${r.value}`);
-        } else if (t === 'vector') {
-            result.push(JSON.stringify(r.value));
-        } else if (r.type === 'matrix') {
-            // We can't use t === 'matrix' because tsc trips on this.
-            result.push(matrixToLatex(r.value, r.width));
-        } else {
-            throw new InterpreterError(`Bad type: ${t}`);
-        }
-    }
-    return result.join('\n');
-}
+// function evaluate_stmts(stmts: Node[], context: any): string {
+//     let result = [];
+//     for (let i = 0; i < stmts.length; i++) {
+//         const r = evaluate(stmts[i], context);
+//         const t = r.type;
+//         if (t === 'number') {
+//             result.push(`${r.value}`);
+//         } else if (t === 'vector') {
+//             result.push(JSON.stringify(r.value));
+//         } else if (r.type === 'matrix') {
+//             // We can't use t === 'matrix' because tsc trips on this.
+//             result.push(matrixToLatex(r.value, r.width));
+//         } else {
+//             throw new InterpreterError(`Bad type: ${t}`);
+//         }
+//     }
+//     return result.join('\n');
+// }
 
 function evaluate(stmt: Node, context: any): Value {
     if (stmt.type === 'definition') {

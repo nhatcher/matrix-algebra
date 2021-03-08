@@ -15,8 +15,10 @@ const outputs = document.getElementsByClassName('outputs')[0];
 // Globals
 const cmdHistory = [];
 let level = 0;
-const context = {};
-
+// Init with an example matrix
+const context = {
+  a:  {type: "matrix", value: [1, 3, 2, 4], width: 2, height: 2}
+}
 //
 
 function addCommand(value) {

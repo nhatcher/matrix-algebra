@@ -13,7 +13,6 @@ class InterpreterError extends Error {
 export function evaluate_str(value, context) {
     const t = new Parser(value);
     const stmts = t.parse();
-    console.log(stmts);
     return evaluate(stmts[0], context);
 }
 function evaluate(stmt, context) {
@@ -193,7 +192,7 @@ function evaluate(stmt, context) {
                 height: rhs.height
             };
         }
-        else if (rhs.type === 'number' && lhs.type === 'matrix') {
+        else if (lhs.type === 'matrix' && rhs.type === 'number') {
             const value = rhs.value;
             const matrix = lhs.value;
             const N = lhs.width * lhs.height;
@@ -252,6 +251,37 @@ function evaluate(stmt, context) {
                 throw new InterpreterError('Cannot add matrices of different sizes');
             }
         }
+        else if (lhs.type === 'number' && rhs.type === 'matrix') {
+            const value = lhs.value;
+            const matrix = rhs.value;
+            const N = rhs.width * rhs.height;
+            const result = new Float64Array(N);
+            const inv = wasm.inverse(matrix, rhs.width);
+            for (let i = 0; i < N; i++) {
+                result[i] = value * inv[i];
+            }
+            return {
+                type: 'matrix',
+                value: result,
+                width: rhs.width,
+                height: rhs.height
+            };
+        }
+        else if (lhs.type === 'matrix' && rhs.type === 'number') {
+            const value = rhs.value;
+            const matrix = lhs.value;
+            const N = lhs.width * lhs.height;
+            const result = new Float64Array(N);
+            for (let i = 0; i < N; i++) {
+                result[i] = matrix[i] / value;
+            }
+            return {
+                type: 'matrix',
+                value: result,
+                width: lhs.width,
+                height: lhs.height
+            };
+        }
         else {
             throw new InterpreterError('Can only divide numbers');
         }
@@ -264,6 +294,40 @@ function evaluate(stmt, context) {
                 type: 'number',
                 value: Math.pow(lhs.value, rhs.value)
             };
+        }
+        else if (lhs.type === 'matrix' && rhs.type === 'number') {
+            let value = rhs.value;
+            if (value >= 0) {
+                if (value === Math.floor(value)) {
+                    let N = lhs.width;
+                    let result = lhs.value;
+                    for (let i = 1; i < value; i++) {
+                        result = wasm.multiply(result, lhs.value, N);
+                    }
+                    return {
+                        type: 'matrix',
+                        value: result,
+                        width: N,
+                        height: N
+                    };
+                }
+            }
+            else {
+                if (value === Math.floor(value)) {
+                    let N = lhs.width;
+                    let inverse = wasm.inverse(lhs.value, N);
+                    let result = inverse;
+                    for (let i = 1; i < -value; i++) {
+                        result = wasm.multiply(result, inverse, N);
+                    }
+                    return {
+                        type: 'matrix',
+                        value: result,
+                        width: N,
+                        height: N
+                    };
+                }
+            }
         }
         else {
             throw new InterpreterError('Can only multiply numbers');

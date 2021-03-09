@@ -32,15 +32,14 @@ function addCommand(value) {
 function processCommand(value) {
   try {
     const result = evaluate_str(value, context);
-    console.log(result);
     if (result.type === 'matrix') {
       say(matrixToLatex(result.value, result.width), true);
     } else {
       say(JSON.stringify(result.value))
     }
   } catch (e) {
-    console.trace();
-    say(e.message)
+     console.trace();
+     say(e.message)
   }
 }
 
@@ -61,7 +60,11 @@ function say(text, process_latex=false) {
 
 function setupREPL() {
   // Listen to keyboard events
-  replInput.addEventListener('keydown', (event) => {
+  // keydown is problematic because Android tends toi send many 229 events.
+  // See, for instance:
+  // * https://www.reddit.com/r/javascript/comments/3hr100/the_dreaded_keydown_keycode_of_229_for_android/
+  // * https://stackoverflow.com/questions/36753548/keycode-on-android-is-always-229
+  replInput.addEventListener('keyup', (event) => {
       const key = event.key;
       if (key === 'ArrowUp') {
           level = Math.max(0, level - 1);
@@ -77,6 +80,7 @@ function setupREPL() {
           processCommand(value);
           replInput.value = '';
       }
+
   });
 
 

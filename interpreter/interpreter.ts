@@ -38,7 +38,7 @@ class InterpreterError extends Error {
 
 
 export function evaluate_str(value: string, context: any): Value {
-    const t = new Parser(value);
+    const t = new Parser(value.trim());
     const stmts = t.parse();
     return evaluate(stmts[0], context);
 }

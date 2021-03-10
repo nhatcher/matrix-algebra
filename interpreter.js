@@ -468,6 +468,32 @@ function evaluate(stmt, context) {
                 throw new InterpreterError('Not implemented');
             }
         }
+        else if (name === 'norm') {
+            const args = stmt.args;
+            if (args.length !== 1) {
+                throw new InterpreterError('Wrong number of argument for function sin');
+            }
+            const result = evaluate(args[0], context);
+            if (result.type === 'number') {
+                return {
+                    type: 'number',
+                    value: Math.abs(result.value)
+                };
+            }
+            else if (result.type === 'vector') {
+                let r = 0;
+                for (let i = 0; i < result.value.length; i++) {
+                    r += Math.pow(result.value[i], 2);
+                }
+                return {
+                    type: 'number',
+                    value: Math.sqrt(r)
+                };
+            }
+            else {
+                throw new InterpreterError(`Function 'norm' not implemented for type ${result.type}`);
+            }
+        }
         else {
             throw new InterpreterError(`Undefined function "${name}"`);
         }

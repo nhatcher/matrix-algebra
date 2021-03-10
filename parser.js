@@ -138,6 +138,18 @@ export class Parser {
             }
             this.advanceTokens();
         }
+        else if (kind === TokenKind['|']) {
+            this.advanceTokens();
+            lhs = {
+                type: 'function',
+                name: 'norm',
+                args: [this.parseExpression(0)]
+            };
+            if (this.currentToken.kind !== TokenKind['|']) {
+                throw new ParserError(`Expecting '|' found ${this.currentToken.kind}`);
+            }
+            this.advanceTokens();
+        }
         else if (kind === TokenKind['[']) {
             const k = this.peekToken;
             if (k.kind === TokenKind['[']) {
@@ -161,7 +173,7 @@ export class Parser {
         }
         for (;;) {
             const opToken = this.currentToken;
-            if (opToken.kind === TokenKind.EOF || opToken.kind === TokenKind[')'] || opToken.kind === TokenKind[','] || opToken.kind === TokenKind[']']) {
+            if (opToken.kind === TokenKind.EOF || opToken.kind === TokenKind[')'] || opToken.kind === TokenKind[','] || opToken.kind === TokenKind[']'] || opToken.kind === TokenKind['|']) {
                 break;
             }
             else if (!isOperation(opToken.str)) {

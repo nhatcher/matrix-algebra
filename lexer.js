@@ -243,6 +243,13 @@ export class Lexer {
                 str: ','
             };
         }
+        else if (c === '|') {
+            this.advanceChar();
+            return {
+                kind: TokenKind['|'],
+                str: '|'
+            };
+        }
         else if (isAlphabetic(c)) {
             const str = this.parseIdentifier();
             return {
@@ -273,6 +280,7 @@ export var TokenKind;
     TokenKind[TokenKind[")"] = 15] = ")";
     TokenKind[TokenKind["["] = 16] = "[";
     TokenKind[TokenKind["]"] = 17] = "]";
-    TokenKind[TokenKind["EOF"] = 18] = "EOF";
+    TokenKind[TokenKind["|"] = 18] = "|";
+    TokenKind[TokenKind["EOF"] = 19] = "EOF";
 })(TokenKind || (TokenKind = {}));
 //# sourceMappingURL=lexer.js.map

@@ -214,6 +214,17 @@ export class Parser {
                 throw new ParserError(`Expecting ')' found ${this.currentToken.kind}`);
             }
             this.advanceTokens();
+        } else if (kind === TokenKind['|']) {
+            this.advanceTokens();
+            lhs = {
+                type: 'function',
+                name: 'norm',
+                args: [this.parseExpression(0)]
+            }
+            if (this.currentToken.kind !== TokenKind['|']) {
+                throw new ParserError(`Expecting '|' found ${this.currentToken.kind}`);
+            }
+            this.advanceTokens();
         } else if (kind === TokenKind['[']) {
             // Vector or Matrix
             const k = this.peekToken;
@@ -239,7 +250,7 @@ export class Parser {
 
         for(;;) {
             const opToken = this.currentToken;
-            if (opToken.kind === TokenKind.EOF || opToken.kind === TokenKind[')'] || opToken.kind === TokenKind[','] || opToken.kind === TokenKind[']']) {
+            if (opToken.kind === TokenKind.EOF || opToken.kind === TokenKind[')'] || opToken.kind === TokenKind[','] || opToken.kind === TokenKind[']'] || opToken.kind === TokenKind['|']) {
                 break;
             } else if (!isOperation(opToken.str)) {
                 throw new ParserError(`Unexpected token (expecting operator) ${opToken.str}`);

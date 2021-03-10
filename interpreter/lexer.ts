@@ -247,6 +247,12 @@ export class Lexer {
                 kind: TokenKind[','],
                 str: ','
             }
+        } else if (c === '|') {
+            this.advanceChar();
+            return {
+                kind: TokenKind['|'],
+                str: '|'
+            }
         } else if(isAlphabetic(c)) {
             const str = this.parseIdentifier();
             return {
@@ -278,6 +284,7 @@ export enum TokenKind {
     ')',
     '[',
     ']',
+    '|',
     EOF,
 }
 

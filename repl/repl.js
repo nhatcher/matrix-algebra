@@ -1,9 +1,6 @@
 import { evaluate_str } from './interpreter.js';
 import { matrixToLatex } from './util.js';
 
-//import { Lexer, TokenKind } from './lexer.js';
-
-
 // Original console design by Matt Cowley https://codepen.io/MattCowley/pen/jqBbdG/
 
 // Elements
@@ -15,11 +12,11 @@ const outputs = document.getElementsByClassName('outputs')[0];
 // Globals
 const cmdHistory = [];
 let level = 0;
+
 // Init with an example matrix
 const context = {
   a:  {type: "matrix", value: [1, 3, 2, 4], width: 2, height: 2}
 }
-//
 
 function addCommand(value) {
   const command = document.createElement('div');

@@ -7,6 +7,8 @@ export async function init() {
     const multiplyMat = instance.exports.multiply;
     const determinantMat = instance.exports.determinant;
     const inverseMat = instance.exports.inverse;
+    const traceMat = instance.exports.trace;
+    const transposeMat = instance.exports.transpose;
     function multiply(A, B, N) {
         const L = N * N;
         console.assert(A.length === L);
@@ -36,6 +38,26 @@ export async function init() {
         free(pA);
         return d;
     }
+    function trace(A, N) {
+        const L = N * N;
+        const pA = malloc(L * 8);
+        const cA = new Float64Array(memory.buffer, pA, L);
+        cA.set(A);
+        const d = traceMat(pA, N);
+        free(pA);
+        return d;
+    }
+    function transpose(A, N) {
+        const L = N * N;
+        const pA = malloc(L * 8);
+        const cA = new Float64Array(memory.buffer, pA, L);
+        cA.set(A);
+        transposeMat(pA, N);
+        const B = new Float64Array(L);
+        B.set(cA);
+        free(pA);
+        return B;
+    }
     function inverse(A, N) {
         const L = N * N;
         console.assert(A.length === L);
@@ -54,7 +76,9 @@ export async function init() {
     return {
         multiply,
         determinant,
-        inverse
+        inverse,
+        trace,
+        transpose
     };
 }
 //# sourceMappingURL=linear.js.map

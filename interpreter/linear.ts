@@ -11,6 +11,8 @@ export async function init() {
   const multiplyMat = instance.exports.multiply as CallableFunction;
   const determinantMat = instance.exports.determinant as CallableFunction;
   const inverseMat = instance.exports.inverse as CallableFunction;
+  const traceMat = instance.exports.trace as CallableFunction;
+  const transposeMat = instance.exports.transpose as CallableFunction;
 
   function multiply(A: any, B: any, N:any): any {
     const L = N * N;
@@ -43,6 +45,28 @@ export async function init() {
     return d;
   }
 
+  function trace(A: any, N: any): number {
+    const L = N * N;
+    const pA = malloc(L * 8);
+    const cA = new Float64Array(memory.buffer, pA, L);
+    cA.set(A);
+    const d = traceMat(pA, N);
+    free(pA);
+    return d;
+  }
+
+  function transpose(A: any, N: any): any {
+    const L = N * N;
+    const pA = malloc(L * 8);
+    const cA = new Float64Array(memory.buffer, pA, L);
+    cA.set(A);
+    transposeMat(pA, N);
+    const B = new Float64Array(L);
+    B.set(cA);
+    free(pA);
+    return B;
+  }
+
   function inverse(A: any, N: number): any {
     const L = N * N;
     console.assert(A.length === L);
@@ -62,6 +86,8 @@ export async function init() {
   return {
     multiply,
     determinant,
-    inverse
+    inverse,
+    trace,
+    transpose
   }
 }

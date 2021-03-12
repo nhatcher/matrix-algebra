@@ -475,6 +475,36 @@ function evaluate(stmt: Node, context: any): Value {
             } else {
                 throw new InterpreterError(`Function 'norm' not implemented for type ${result.type}`);
             }
+        } else if (name === 'trace') {
+            const args = stmt.args;
+            if (args.length !== 1) {
+                throw new InterpreterError('Wrong number of argument for function sin');
+            }
+            const result = evaluate(args[0], context);
+            if (result.type === 'matrix') {
+                return {
+                    type: 'number',
+                    value: wasm.trace(result.value, result.width)
+                }
+            } else {
+                throw new InterpreterError('Not implemented');
+            }
+        } else if (name === 'transpose') {
+            const args = stmt.args;
+            if (args.length !== 1) {
+                throw new InterpreterError('Wrong number of argument for function sin');
+            }
+            const result = evaluate(args[0], context);
+            if (result.type === 'matrix') {
+                return {
+                    type: 'matrix',
+                    value: wasm.transpose(result.value, result.width),
+                    width: result.width,
+                    height: result.height
+                }
+            } else {
+                throw new InterpreterError('Not implemented');
+            }
         } else {
             throw new InterpreterError(`Undefined function "${name}"`);
         }

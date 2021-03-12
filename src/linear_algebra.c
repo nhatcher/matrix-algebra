@@ -51,7 +51,24 @@ double fabs(double x) {
 
 
 // Private non-exported functions
+// A will be destroyed and will contain R
+int QRDecompose(double *A, int N, double *Q) {
+  // Set Identity to Q
+  for (int j = 0; j < N; j++) {
+      for (int i = 0; i < N; i++) {
+        if (i == j) {
+          Q[i * N + j] = 1.0;
+        } else {
+          Q[i * N + j] = 0.0;
+        }
+      }
+  }
+  for (int i = 0; i < N; i++) {
 
+
+  }
+  return 0;
+}
 
 /* INPUT: A - array of pointers to rows of a square matrix having dimension N
  *        Tol - small tolerance number to detect failure when the matrix is near degenerate
@@ -177,6 +194,8 @@ double LUPDeterminant(double *A, int *P, int N) {
     }
 }
 
+
+
 // Public functions
 
 
@@ -198,6 +217,15 @@ double determinant(double *A, int N) {
 }
 
 WASM_EXPORT
+double trace(double *A, int N) {
+  double t = 0;
+  for (int i = 0 ; i < N; i++) {
+    t += A[i+N*i];
+  };
+  return t;
+}
+
+WASM_EXPORT
 void multiply(double *X, double *Y, double *R, int N) {
   // Multiplies two matrices X*Y.
   for (int i = 0; i < N; i++) {
@@ -207,6 +235,17 @@ void multiply(double *X, double *Y, double *R, int N) {
         r += X[i * N + k] * Y[k * N + j];
       }
       R[i * N + j] = r;
+    }
+  }
+}
+
+WASM_EXPORT
+void transpose(double *A, int N) {
+  for (int i = 0; i < N; i++) {
+    for (int j = i + 1; j < N; j++) {
+      double swap = A[i + j*N];
+      A[i + j*N] = A [j + i*N];
+      A[j + i*N] = swap;
     }
   }
 }

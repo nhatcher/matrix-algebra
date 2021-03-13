@@ -232,9 +232,9 @@ void multiply(double *X, double *Y, double *R, int N) {
     for (int j = 0; j < N; j++) {
       double r = 0;
       for (int k = 0; k < N; k++) {
-        r += X[i * N + k] * Y[k * N + j];
+        r += X[j * N + k] * Y[k * N + i];
       }
-      R[i * N + j] = r;
+      R[j * N + i] = r;
     }
   }
 }

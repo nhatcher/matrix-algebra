@@ -364,7 +364,7 @@ function evaluate(stmt: Node, context: any): Value {
         const r = new Float64Array(width*height);
         for (let i = 0; i < width; i++) {
             for (let j = 0; j < height; j++) {
-                const t = evaluate(stmt.matrix[i][j], context);
+                const t = evaluate(stmt.matrix[j][i], context);
                 if (t.type !== 'number') {
                     throw new InterpreterError(`Expected number got '${t.type}'`)
                 }

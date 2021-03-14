@@ -44,6 +44,17 @@ export class Lexer {
             this.position += 1;
         }
     }
+    parseInteger() {
+        let str = '';
+        while (isDigit(this.text[this.position])) {
+            str += this.text[this.position];
+            this.position += 1;
+        }
+        if (str === '') {
+            return 0;
+        }
+        return Number(str);
+    }
     parseIdentifier() {
         let str = '';
         let state = 1;
@@ -250,6 +261,15 @@ export class Lexer {
                 str: '|'
             };
         }
+        else if (c === '$') {
+            this.advanceChar();
+            const value = this.parseInteger();
+            return {
+                kind: TokenKind.History,
+                str: '$' + value,
+                value: this.parseInteger(),
+            };
+        }
         else if (isAlphabetic(c)) {
             const str = this.parseIdentifier();
             return {
@@ -264,23 +284,24 @@ export var TokenKind;
 (function (TokenKind) {
     TokenKind[TokenKind["Number"] = 0] = "Number";
     TokenKind[TokenKind["Identifier"] = 1] = "Identifier";
-    TokenKind[TokenKind["+"] = 2] = "+";
-    TokenKind[TokenKind["-"] = 3] = "-";
-    TokenKind[TokenKind["*"] = 4] = "*";
-    TokenKind[TokenKind["/"] = 5] = "/";
-    TokenKind[TokenKind["^"] = 6] = "^";
-    TokenKind[TokenKind["="] = 7] = "=";
-    TokenKind[TokenKind["<"] = 8] = "<";
-    TokenKind[TokenKind[">"] = 9] = ">";
-    TokenKind[TokenKind["<="] = 10] = "<=";
-    TokenKind[TokenKind[">="] = 11] = ">=";
-    TokenKind[TokenKind["!="] = 12] = "!=";
-    TokenKind[TokenKind[","] = 13] = ",";
-    TokenKind[TokenKind["("] = 14] = "(";
-    TokenKind[TokenKind[")"] = 15] = ")";
-    TokenKind[TokenKind["["] = 16] = "[";
-    TokenKind[TokenKind["]"] = 17] = "]";
-    TokenKind[TokenKind["|"] = 18] = "|";
-    TokenKind[TokenKind["EOF"] = 19] = "EOF";
+    TokenKind[TokenKind["History"] = 2] = "History";
+    TokenKind[TokenKind["+"] = 3] = "+";
+    TokenKind[TokenKind["-"] = 4] = "-";
+    TokenKind[TokenKind["*"] = 5] = "*";
+    TokenKind[TokenKind["/"] = 6] = "/";
+    TokenKind[TokenKind["^"] = 7] = "^";
+    TokenKind[TokenKind["="] = 8] = "=";
+    TokenKind[TokenKind["<"] = 9] = "<";
+    TokenKind[TokenKind[">"] = 10] = ">";
+    TokenKind[TokenKind["<="] = 11] = "<=";
+    TokenKind[TokenKind[">="] = 12] = ">=";
+    TokenKind[TokenKind["!="] = 13] = "!=";
+    TokenKind[TokenKind[","] = 14] = ",";
+    TokenKind[TokenKind["("] = 15] = "(";
+    TokenKind[TokenKind[")"] = 16] = ")";
+    TokenKind[TokenKind["["] = 17] = "[";
+    TokenKind[TokenKind["]"] = 18] = "]";
+    TokenKind[TokenKind["|"] = 19] = "|";
+    TokenKind[TokenKind["EOF"] = 20] = "EOF";
 })(TokenKind || (TokenKind = {}));
 //# sourceMappingURL=lexer.js.map

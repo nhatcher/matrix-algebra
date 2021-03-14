@@ -34,6 +34,8 @@ function processCommand(value) {
     } else {
       say(JSON.stringify(result.value))
     }
+    context['$' + cmdHistory.length] = result;
+
   } catch (e) {
      console.trace();
      say(e.message)

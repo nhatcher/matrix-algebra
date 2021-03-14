@@ -168,6 +168,13 @@ export class Parser {
                 rhs: rhs
             };
         }
+        else if (kind === TokenKind.History) {
+            lhs = {
+                type: 'variable',
+                name: token.str
+            };
+            this.advanceTokens();
+        }
         else {
             throw new ParserError(`Unexpected token (expecting number, atom or prefix). Found: ${token.str}`);
         }

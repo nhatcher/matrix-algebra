@@ -53,6 +53,17 @@ export class Lexer {
             this.position += 1;
         }
     }
+    parseInteger(): number {
+        let str = '';
+        while (isDigit(this.text[this.position])) {
+            str += this.text[this.position];
+            this.position += 1;
+        }
+        if (str === '') {
+            return 0;
+        }
+        return Number(str);
+    }
     parseIdentifier(): string {
         let str = '';
         let state = 1;
@@ -253,6 +264,15 @@ export class Lexer {
                 kind: TokenKind['|'],
                 str: '|'
             }
+        } else if (c === '$') {
+            this.advanceChar();
+            const value = this.parseInteger();
+            return {
+                kind: TokenKind.History,
+                str: '$' + value,
+                value: this.parseInteger(),
+            }
+
         } else if(isAlphabetic(c)) {
             const str = this.parseIdentifier();
             return {
@@ -268,6 +288,7 @@ export class Lexer {
 export enum TokenKind {
     Number,
     Identifier,
+    History,
     '+',
     '-',
     '*',

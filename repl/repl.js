@@ -8,6 +8,7 @@ import { matrixToLatex } from './util.js';
 const repl = document.getElementsByClassName('repl-wrapper')[0];
 const replInput = document.getElementsByClassName('repl-input')[0];
 const outputs = document.getElementsByClassName('outputs')[0];
+const inputPrompt = document.getElementsByClassName('input-prompt')[0];
 
 // Globals
 const cmdHistory = [];
@@ -19,11 +20,19 @@ const context = {
 }
 
 function addCommand(value) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'wrapper';
+  const prompt = document.createElement('div');
+  prompt.className = 'input-prompt';
+  prompt.innerText = `In[${level+1}]: `
+
   const command = document.createElement('div');
   command.className = 'command';
-  command.innerText = value;
-  outputs.appendChild(command);
-  cmdHistory.push(value);
+  command.innerText = value.trim();
+  wrapper.appendChild(prompt);
+  wrapper.appendChild(command);
+  outputs.appendChild(wrapper);
+  cmdHistory.push(value.trim());
 }
 
 function processCommand(value) {
@@ -43,15 +52,24 @@ function processCommand(value) {
 }
 
 function say(text, process_latex=false) {
-  const node = document.createElement('div');
+  const output = document.createElement('div');
+  // output.className = 'output-prompt';
   if (process_latex) {
-    katex.render(text, node, {
+    katex.render(text, output, {
       throwOnError: true
     });
   } else {
-    node.innerText = text;
+    output.innerText = text;
   }
-  outputs.appendChild(node);
+  const wrapper = document.createElement('div');
+  wrapper.className = 'wrapper';
+  const prompt = document.createElement('div');
+  prompt.className = 'output-prompt';
+  prompt.innerText = `Out[${level}]: `
+  wrapper.appendChild(prompt);
+  wrapper.appendChild(output);
+  outputs.appendChild(wrapper);
+
   const inner = repl.getElementsByClassName('repl-inner')[0];
   const bb = inner.getBoundingClientRect();
   repl.scrollTop = bb.height;
@@ -78,14 +96,10 @@ function setupREPL() {
           level = cmdHistory.length;
           processCommand(value);
           replInput.value = '';
+          inputPrompt.innerText = `In[${level+1}]: `;
       }
-
   });
-
-
-  say('Matrix Algebra at your fingertips!');
   replInput.value = '';
-
 };
 
 

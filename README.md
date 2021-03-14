@@ -69,7 +69,10 @@ ROADMAP
 - [ ] Example matrices (Identity, quaternions, octonions...)
 - [ ] Functions on matrices
 - [ ] Tests!!!!
-- [ ] Pretify UI?
+- [ ] Prettify UI
+- [ ] Non square matrices
+- [ ] Matrix and vector elements access A[4\][5\]
+- [ ] A*v Matrix over vectors (is it just matrix product?)
 
 Implementation details
 ----------------------

@@ -102,7 +102,7 @@ function evaluate(stmt: Node, context: any): Value {
         if (lhs.type === 'number' && rhs.type === 'number') {
             return {
                 type: 'number',
-                value: lhs.value + rhs.value
+                value: lhs.value - rhs.value
             }
         } else if (lhs.type === 'vector' && rhs.type === 'vector') {
             const vector1 = lhs.value;

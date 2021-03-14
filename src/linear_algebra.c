@@ -51,6 +51,39 @@ double fabs(double x) {
 
 
 // Private non-exported functions
+
+double sqrt (double v) {
+  return v;
+}
+double norm(double *u, int N) {
+  double r = 0;
+  for(int i=0; i<N; i++) {
+    double s = u[i];
+    r += s*s;
+  };
+  return sqrt(r);
+}
+
+// computes the Hoseholder matrix H from vector v
+void householder(double *v, double *H, int N) {
+  double beta = -2/norm(v, N);
+  for (int i = 0; i < N; i++) {
+    for (int j = i; j < N; j++) {
+      if (i == j) {
+        H[j*N+i] = 1-beta*v[i]*v[i];
+      } else {
+        double s = v[i]*v[j];
+        H[j*N+i] = s;
+        H[i*N+j] = s;
+      }
+    }
+  }
+}
+
+void multiply_minor(double *q, double *A, double *B, int n, int N) {
+
+}
+
 // A will be destroyed and will contain R
 int QRDecompose(double *A, int N, double *Q) {
   // Set Identity to Q
@@ -64,8 +97,27 @@ int QRDecompose(double *A, int N, double *Q) {
       }
   }
   for (int i = 0; i < N; i++) {
-
-
+    // A minor from A from column and row i dimension NxN
+    double norm_a = 0;
+    for (int k = i; k < N; k++) {
+      norm_a += A[k*N+i];
+    }
+    norm_a = sqrt(norm_a);
+    double *u = memalloc(sizeof(double)*(N-i));
+    double a1 = A[i*N];
+    int sign_a1 = 1;
+    if (a1 <  0) {
+      sign_a1 = -1;
+    }
+    u[0] = a1 - sign_a1*norm_a;
+    for (int k = 0; k < N-i; k++) {
+      u[k] = A[k*N+i];
+    }
+    int n = N - i;
+    double *q = memalloc(sizeof(double)*n*n);
+    householder(u, q, N);
+    double *B = memalloc(sizeof(double)*n*n);
+    multiply_minor(q, A, B, n, N);
   }
   return 0;
 }

@@ -2,6 +2,7 @@ MATRIX ALGEBRA
 ==============
 
 **⚠️ WARNING: This is work in progress**
+
 **⚠️ WARNING: This is only meant as a proof of concept. Real product will be done in Rust and use a wasm compiler.**
 
 This is a simple RPEL to work with matrix algebra.

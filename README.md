@@ -1,8 +1,8 @@
 MATRIX ALGEBRA
 ==============
 
-WARNING: This is work in progress
-WARNING: This is only meant as a proof of concept. Real product will be done in Rust and use a wasm compiler.
+**⚠️ WARNING: This is work in progress**
+**⚠️ WARNING: This is only meant as a proof of concept. Real product will be done in Rust and use a wasm compiler.**
 
 This is a simple RPEL to work with matrix algebra.
 
@@ -47,26 +47,28 @@ Power (only integers at the moment), division
 Output is shown in LaTex with Katex
 
 
-Building and running locally:
+Building and running locally
 -----------------------------
 
 You need TypeScript and clang version > 11.0.0.
 
+```bash
 $ make
 $ cd build
 build $ python -m http.server 1234
+```
 
 
 ROADMAP
 -------
 
-[] QR decomposition
-[] Eigenvalues and eigenvectors
-[] Complex numbers
-[] Example matrices (Identity, quaternions, octonions...)
-[] Functions on matrices
-[] Tests!!!!
-[] Pretify UI?
+- [ ] QR decomposition
+- [ ] Eigenvalues and eigenvectors
+- [ ] Complex numbers
+- [ ] Example matrices (Identity, quaternions, octonions...)
+- [ ] Functions on matrices
+- [ ] Tests!!!!
+- [ ] Pretify UI?
 
 Implementation details
 ----------------------

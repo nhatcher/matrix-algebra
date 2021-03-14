@@ -81,7 +81,7 @@ function evaluate(stmt, context) {
         if (lhs.type === 'number' && rhs.type === 'number') {
             return {
                 type: 'number',
-                value: lhs.value + rhs.value
+                value: lhs.value - rhs.value
             };
         }
         else if (lhs.type === 'vector' && rhs.type === 'vector') {

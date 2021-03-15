@@ -106,6 +106,13 @@ export class Parser {
             };
             this.advanceTokens();
         }
+        else if (kind === TokenKind.ComplexNumber) {
+            lhs = {
+                type: 'complex',
+                value: token.complex || [0, 0]
+            };
+            this.advanceTokens();
+        }
         else if (kind === TokenKind['Identifier']) {
             lhs = {
                 type: 'variable',

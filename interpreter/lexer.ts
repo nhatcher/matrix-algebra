@@ -270,11 +270,17 @@ export class Lexer {
             return {
                 kind: TokenKind.History,
                 str: '$' + value,
-                value: this.parseInteger(),
             }
 
         } else if(isAlphabetic(c)) {
             const str = this.parseIdentifier();
+            if (str === 'i') {
+                return {
+                    kind: TokenKind.ComplexNumber,
+                    str: str,
+                    complex: [0, 1]
+                }
+            }
             return {
                 kind: TokenKind.Identifier,
                 str: str
@@ -287,6 +293,7 @@ export class Lexer {
 
 export enum TokenKind {
     Number,
+    ComplexNumber,
     Identifier,
     History,
     '+',
@@ -313,6 +320,7 @@ export interface Token {
     kind: TokenKind;
     str: string;
     value?: number;
+    complex?: [number, number]
 }
 
 

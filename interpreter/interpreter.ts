@@ -15,6 +15,16 @@ interface Number {
     value: number
 }
 
+interface ComplexNumber {
+    type: 'complex-number',
+    value: [number, number]
+}
+
+interface ComplexVector {
+    type: 'complex-vector',
+    real: number[]
+    complex: number[]
+}
 interface Vector {
     type: 'vector',
     value: number[]
@@ -27,7 +37,15 @@ interface Matrix {
     height: number
 }
 
-type Value = Number | Vector | Matrix;
+interface ComplexMatrix {
+    type: 'complex-matrix',
+    real: Float64Array,
+    complex: Float64Array,
+    width: number,
+    height: number
+}
+
+type Value = Number | Vector | Matrix | ComplexNumber | ComplexVector | ComplexMatrix;
 
 class InterpreterError extends Error {
     constructor(message: string) {
@@ -55,6 +73,21 @@ function evaluate(stmt: Node, context: any): Value {
             return {
                 type: 'number',
                 value: lhs.value + rhs.value
+            }
+        } else if (lhs.type === 'complex-number' && rhs.type === 'complex-number') {
+            return {
+                type: 'complex-number',
+                value: [lhs.value[0] + rhs.value[0], lhs.value[1] + rhs.value[1]]
+            }
+        } else if (lhs.type === 'complex-number' && rhs.type === 'number') {
+            return {
+                type: 'complex-number',
+                value: [lhs.value[0] + rhs.value, lhs.value[1]]
+            }
+        } else if (lhs.type === 'number' && rhs.type === 'complex-number') {
+            return {
+                type: 'complex-number',
+                value: [lhs.value + rhs.value[0], rhs.value[1]]
             }
         } else if (lhs.type === 'vector' && rhs.type === 'vector') {
             const vector1 = lhs.value;
@@ -104,6 +137,21 @@ function evaluate(stmt: Node, context: any): Value {
                 type: 'number',
                 value: lhs.value - rhs.value
             }
+        }  else if (lhs.type === 'complex-number' && rhs.type === 'complex-number') {
+            return {
+                type: 'complex-number',
+                value: [lhs.value[0] - rhs.value[0], lhs.value[1] - rhs.value[1]]
+            }
+        } else if (lhs.type === 'complex-number' && rhs.type === 'number') {
+            return {
+                type: 'complex-number',
+                value: [lhs.value[0] - rhs.value, lhs.value[1]]
+            }
+        } else if (lhs.type === 'number' && rhs.type === 'complex-number') {
+            return {
+                type: 'complex-number',
+                value: [lhs.value - rhs.value[0], -rhs.value[1]]
+            }
         } else if (lhs.type === 'vector' && rhs.type === 'vector') {
             const vector1 = lhs.value;
             const vector2 = rhs.value;
@@ -147,6 +195,25 @@ function evaluate(stmt: Node, context: any): Value {
             return {
                 type: 'number',
                 value: lhs.value * rhs.value
+            }
+        }  else if (lhs.type === 'complex-number' && rhs.type === 'complex-number') {
+            const x1 = lhs.value[0];
+            const y1 = lhs.value[1];
+            const x2 = rhs.value[0];
+            const y2 = rhs.value[1];
+            return {
+                type: 'complex-number',
+                value: [x1*x2-y1*y2, x1*y2+y1*x2]
+            }
+        } else if (lhs.type === 'complex-number' && rhs.type === 'number') {
+            return {
+                type: 'complex-number',
+                value: [lhs.value[0] * rhs.value, lhs.value[1] * rhs.value]
+            }
+        } else if (lhs.type === 'number' && rhs.type === 'complex-number') {
+            return {
+                type: 'complex-number',
+                value: [lhs.value * rhs.value[0], lhs.value * rhs.value[1]]
             }
         } else if (lhs.type === 'number' && rhs.type === 'vector') {
             const N = rhs.value.length;
@@ -226,6 +293,30 @@ function evaluate(stmt: Node, context: any): Value {
             return {
                 type: 'number',
                 value: lhs.value / rhs.value
+            }
+        }  else if (lhs.type === 'complex-number' && rhs.type === 'complex-number') {
+            const x1 = lhs.value[0];
+            const y1 = lhs.value[1];
+            const x2 = rhs.value[0];
+            const y2 = rhs.value[1];
+            const norm = x2*x2+y2*y2;
+            return {
+                type: 'complex-number',
+                value: [(x1*x2-y1*y2)/norm, (-x1*y2+x2*y1)/norm]
+            }
+        } else if (lhs.type === 'complex-number' && rhs.type === 'number') {
+            return {
+                type: 'complex-number',
+                value: [lhs.value[0] / rhs.value, lhs.value[1] / rhs.value]
+            }
+        } else if (lhs.type === 'number' && rhs.type === 'complex-number') {
+            const x1 = lhs.value;
+            const x2 = rhs.value[0];
+            const y2 = rhs.value[1];
+            const norm = x2*x2+y2*y2;
+            return {
+                type: 'complex-number',
+                value: [x1*x2/norm, -x1*y2/norm]
             }
         } else if (lhs.type === 'vector' && rhs.type === 'number') {
             const N = lhs.value.length;
@@ -342,6 +433,13 @@ function evaluate(stmt: Node, context: any): Value {
         return {
             type: 'number',
             value: stmt.value
+        }
+    } else if (stmt.type === 'complex') {
+        return {
+            type: "complex-number",
+            value: stmt.value
+
+
         }
     } else if (stmt.type === 'vector') {
         const N = stmt.args.length;

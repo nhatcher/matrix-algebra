@@ -40,6 +40,27 @@ function processCommand(value) {
     const result = evaluate_str(value, context);
     if (result.type === 'matrix') {
       say(matrixToLatex(result.value, result.width), true);
+    } else if (result.type === 'complex-number') {
+      if (result.value[1] === 0) {
+        say(result.value[0]);
+      } else if (result.value[0] === 0) {
+        if (result.value[1] === 1) {
+          say('i');
+        } else if (result.value[1] === -1) {
+          say('-i');
+        } else {
+          say(`${result.value[1]}i`);
+        }
+      } else {
+        const sign = result.value[1] > 0 ? '+': '';
+        let rhs = `${result.value[1]}`;
+        if (result.value[1] === 1) {
+          rhs = '';
+        } else if (result.value[1] === -1) {
+          rhs = '-';
+        }
+        say(`${result.value[0]}${sign}${rhs}i`);
+      }
     } else {
       say(JSON.stringify(result.value))
     }

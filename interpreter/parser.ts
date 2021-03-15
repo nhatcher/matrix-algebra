@@ -27,6 +27,11 @@ interface NumberNode {
     value: number
 }
 
+interface ComplexNode {
+    type: 'complex'
+    value: [number, number]
+}
+
 interface UnaryOpNode {
     type: 'u-' | 'u+',
     rhs: Node
@@ -58,7 +63,7 @@ interface Vector {
     args: Node[]
 }
 
-export type Node = DefinitionNode | OpNode | UnaryOpNode | NumberNode | VariableNode | FunctionCallNode | Vector | Matrix;
+export type Node = DefinitionNode | OpNode | UnaryOpNode | NumberNode | VariableNode | FunctionCallNode | Vector | Matrix | ComplexNode;
 
 
 function isOperation(s: string): s is '+' | '-' | '*' | '/' | '^' {
@@ -180,6 +185,12 @@ export class Parser {
             lhs = {
                 type: 'number',
                 value: token.value || 0
+            }
+            this.advanceTokens();
+        } else if (kind === TokenKind.ComplexNumber) {
+            lhs = {
+                type: 'complex',
+                value: token.complex || [0, 0]
             }
             this.advanceTokens();
         } else if (kind === TokenKind['Identifier']) {

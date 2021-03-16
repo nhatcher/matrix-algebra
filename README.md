@@ -47,6 +47,8 @@ Power (only integers at the moment), division
 
 Output is shown in LaTex with Katex
 
+To get Out[5\] you can use $5. Some mathematical functions are implemented
+
 
 Building and running locally
 -----------------------------

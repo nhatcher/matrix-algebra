@@ -1,5 +1,6 @@
 import { Parser, Node } from "./parser.js";
 import {init} from "./linear.js";
+import {clog, cnorm} from 'complex.js';
 
 
 // FIXME: In the future we could use top level await:
@@ -387,6 +388,8 @@ function evaluate(stmt: Node, context: any): Value {
                 type: 'number',
                 value: Math.pow(lhs.value, rhs.value)
             }
+        } else if (lhs.type === 'complex-number' && rhs.type === 'number') {
+            const r = Math.log(cnorm(lhs.value));
         } else if (lhs.type === 'matrix' && rhs.type === 'number') {
             let value = rhs.value;
             // TODO: There are more efficient ways of doing this :)
@@ -531,6 +534,51 @@ function evaluate(stmt: Node, context: any): Value {
             } else {
                 throw new InterpreterError('Not implemented');
             }
+        } else if (name === 'log') {
+            const args = stmt.args;
+            if (args.length !== 1) {
+                throw new InterpreterError('Wrong number of argument for function sin');
+            }
+            const result = evaluate(args[0], context);
+            if (result.type === 'number') {
+                if (result.value > 0) {
+                    return {
+                        type: 'number',
+                        value: Math.log(result.value)
+                    }
+                } else {
+                    return {
+                        type: 'complex-number',
+                        value: clog([result.value, 0])
+                    } 
+                }
+            } else if (result.type === 'complex-number') {
+                return {
+                    type: 'complex-number',
+                    value: clog(result.value)
+                }
+            } else {
+                throw new InterpreterError('Not implemented');
+            }
+        } else if (name === 'sqrt') {
+            const args = stmt.args;
+            if (args.length !== 1) {
+                throw new InterpreterError('Wrong number of argument for function sin');
+            }
+            const result = evaluate(args[0], context);
+            if (result.type === 'number') {
+                return {
+                    type: 'number',
+                    value: Math.sqrt(result.value)
+                }
+            } else if (result.type === 'complex-number') {
+                return {
+                    type: 'complex-number',
+                    value: clog(result.value)
+                }
+            } else {
+                throw new InterpreterError('Not implemented');
+            } 
         } else if (name === 'det') {
             const args = stmt.args;
             if (args.length !== 1) {

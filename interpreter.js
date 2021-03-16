@@ -1,6 +1,6 @@
 import { Parser } from "./parser.js";
 import { init } from "./linear.js";
-import { clog, cnorm } from 'complex.js';
+import { clog, cnorm } from './complex.js';
 let wasm;
 init().then(w => {
     wasm = w;

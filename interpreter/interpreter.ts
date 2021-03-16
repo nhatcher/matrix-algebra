@@ -1,6 +1,6 @@
 import { Parser, Node } from "./parser.js";
 import {init} from "./linear.js";
-import {clog, cnorm} from 'complex.js';
+import {clog, cnorm} from './complex.js';
 
 
 // FIXME: In the future we could use top level await:

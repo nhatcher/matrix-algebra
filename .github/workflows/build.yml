@@ -14,11 +14,10 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Set up Clang
-      uses: egor-tensin/setup-clang@v1
+    - name: Install LLVM and Clang
+      uses: KyleMayes/install-llvm-action@v1
       with:
-        version: latest
-        platform: x64
+        version: "13.0"
 
     - name: Install typescript
       run: npx tsc

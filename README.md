@@ -79,7 +79,7 @@ ROADMAP
 Implementation details
 ----------------------
 
-This a very simple test of how to use a C program compiled to webassembly without the standard library (libc).
+This a very simple test of how to use a C program compiled to WebAssembly without the standard library (libc).
 
 We use [walloc][1] as a [memory allocator][2] (!).
 

@@ -2,14 +2,7 @@ import { Parser, Node } from "./parser.js";
 import {init} from "./linear.js";
 import {clog, cnorm} from './complex.js';
 
-
-// FIXME: In the future we could use top level await:
-// https://github.com/tc39/proposal-top-level-await
-// At the time of writing is on stage 3 and implemented on Chrome 89
-let wasm: any;
-init().then(w => {
-    wasm = w;
-})
+const wasm = await init();
 
 interface Number {
     type: 'number',

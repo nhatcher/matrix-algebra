@@ -6,10 +6,12 @@ LFLAGS= -Wl,--no-entry -Wl,--export-dynamic -Wl,--lto-O3 -Wl,--import-memory
 
 all:
 	mkdir -p build
+	mkdir -p build/vendor/katex/
 	$(CC) $(CFLAGS) $(LFLAGS) -o build/linear_algebra.wasm src/linear_algebra.c src/walloc.c
 	tsc
 	cp repl/* build/
 	cp bin/* build/
+	cp -r katex/* build/vendor/katex/
 
 tests: all
 	cp build/linalg.js tests/linalg.js

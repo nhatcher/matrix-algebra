@@ -50,7 +50,7 @@ body {
 
 .repl-wrapper .wrapper {
   display: flex;
-  align-items: baseline;
+  /* align-items: baseline; */
   white-space: pre;
   width: 100%;
 }

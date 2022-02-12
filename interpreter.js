@@ -644,7 +644,7 @@ function evaluate(stmt, context) {
         else if (name === 'trace') {
             const args = stmt.args;
             if (args.length !== 1) {
-                throw new InterpreterError('Wrong number of argument for function sin');
+                throw new InterpreterError('Wrong number of argument for function trace');
             }
             const result = evaluate(args[0], context);
             if (result.type === 'matrix') {

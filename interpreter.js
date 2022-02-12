@@ -1,10 +1,7 @@
 import { Parser } from "./parser.js";
 import { init } from "./linear.js";
 import { clog, cnorm } from './complex.js';
-let wasm;
-init().then(w => {
-    wasm = w;
-});
+const wasm = await init();
 class InterpreterError extends Error {
     constructor(message) {
         super(`[Interpreter]: ${message}`);

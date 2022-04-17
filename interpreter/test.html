@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interpreter Test Test</title>
+    <script type="module">
+        import {init} from "./linear.js";
+        const {multiply, multiply_cache, determinant, inverse} = await init();
+
+        function createRandomMatrix(N) {
+          const L = N * N;
+          const A = new Float64Array(L);
+          for (let i=0; i<L; i++) {
+            A[i] = 1+2*(1-0.5*Math.random())
+          }
+          return A;
+        };
+        function createSimpleRandomMatrix(N) {
+          const L = N * N;
+          const A = new Float64Array(L);
+          for (let i=0; i<L; i++) {
+            A[i] = Math.ceil((1+4*Math.random()));
+          }
+          return A;
+        };
+        function printMatrix(A, N, prec=15) {
+          let mat = [];
+          for (let i=0; i<N; i++) {
+            let line = [];
+            for (let j=0; j<N; j++) {
+              const val = parseFloat(A[i + N*j].toFixed(prec));
+              line.push(`<span class="matrix-el">${val}</span>`);
+            }
+            mat.push(line.join(''));
+          }
+          return '<div class="matrix"><div class="matrix-row">' + mat.join('</div><div class="matrix-row">') + '</div></div>';
+        };
+
+        function multiplyjs(X, Y,  N) {
+            const L = N*N;
+            const R = new Float64Array(L);
+            for (let i = 0; i < N; i++) {
+                for (let j = 0; j < N; j++) {
+                    let r = 0;
+                    for (let k = 0; k < N; k++) {
+                        r += X[j * N + k] * Y[k * N + i];
+                    }
+                    R[j * N + i] = r;
+                }
+            }
+            return R;
+        }
+
+        export function test() {
+          const N = Number(document.getElementById('matrix-size').value);
+          const A = createRandomMatrix(N);
+          const screen = new Screen();
+
+          screen.log(`Random matrix ${N}x${N} created, A`);
+          screen.log(`Computing B=innverse(A), C=A*B and then det(C) that should be 1`);
+          screen.time('start');
+          const C = inverse(A, N);
+          screen.time('start-multiply');
+          const B = multiplyjs(A, C, N);
+          // const B = multiplyjs(A, C, N);
+          screen.timeEnd('start-multiply');
+          screen.log(determinant(B, N));
+          screen.timeEnd('start');
+        }
+        class Screen {
+          constructor() {
+            this.div = document.getElementById('result');
+            this.timing = {};
+          }
+          log(str) {
+            const wrapper = document.createElement('div');
+            const span = document.createElement('span');
+            span.innerText = str;
+            wrapper.appendChild(span);
+            this.div.appendChild(wrapper);
+          }
+          time(label) {
+            this.timing[label] = new Date();
+          }
+          timeEnd(label) {
+            const start = this.timing[label];
+            const elapsed = new Date() - start;
+            this.log(`${label}: ${elapsed} ms`);
+          }
+        }
+        document.getElementById('button').addEventListener('click', test);
+
+    </script>
+    <input type="number" value="100" id="matrix-size"/>
+    <button id="button">Run test</button>
+    <div id="result"></div>
+  </body>
+</html>

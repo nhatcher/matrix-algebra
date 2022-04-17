@@ -5,7 +5,7 @@ export async function init() {
   const { instance } = await WebAssembly.instantiateStreaming(
     fetch("./linear_algebra.wasm"), {env}
   );
-  
+
   const malloc = instance.exports.malloc as CallableFunction;
   const free = instance.exports.free as CallableFunction;
   const multiplyMat = instance.exports.multiply as CallableFunction;
@@ -25,7 +25,9 @@ export async function init() {
     cB.set(B);
     const pC = malloc(L * 8);
     const cC = new Float64Array(memory.buffer, pC, L);
+    console.time('multiply-internal');
     multiplyMat(pA, pB, pC, N);
+    console.timeEnd('multiply-internal');
     const D = new Float64Array(L);
     D.set(cC)
     free(pA);

@@ -1,5 +1,5 @@
 CC= $(CLANG)
-CFLAGS= --target=wasm32 -Oz -flto -nostdlib
+CFLAGS= --target=wasm32 -msimd128 -Oz -flto -nostdlib
 
 LFLAGS= -Wl,--no-entry -Wl,--export-dynamic -Wl,--lto-O3 -Wl,--import-memory
 # -Wl,-z,stack-size=$$[8 * 1024 * 1024]

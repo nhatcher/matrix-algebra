@@ -1,5 +1,6 @@
 
 #define WASM_EXPORT __attribute__((visibility("default")))
+#include <wasm_simd128.h>
 
 #ifdef __wasm32__
 // List of clang defines
@@ -125,24 +126,23 @@ int QRDecompose(double *A, int N, double *Q) {
 /* INPUT: A - array of pointers to rows of a square matrix having dimension N
  *        Tol - small tolerance number to detect failure when the matrix is near degenerate
  * OUTPUT: Matrix A is changed, it contains a copy of both matrices L-E and U as A=(L-E)+U such that P*A=L*U.
- *        The permutation matrix is not stored as a matrix, but in an integer vector P of size N+1 
- *        containing column indexes where the permutation matrix has "1". The last element P[N]=S+N, 
- *        where S is the number of row exchanges needed for determinant computation, det(P)=(-1)^S    
+ *        The permutation matrix is not stored as a matrix, but in an integer vector P of size N+1
+ *        containing column indexes where the permutation matrix has "1". The last element P[N]=S+N,
+ *        where S is the number of row exchanges needed for determinant computation, det(P)=(-1)^S
  */
 int LUPDecompose(double *A, int N, int *P) {
-  int i, j, k, imax; 
-  double maxA, absA;
   double Tol = 0;
 
-  for (i = 0; i <= N; i++) {
+  for (int i = 0; i <= N; i++) {
     P[i] = i; // Unit permutation matrix, P[N] initialized with N
   }
-  for (i = 0; i < N; i++) {
-    maxA = 0.0;
-    imax = i;
+  for (int i = 0; i < N; i++) {
+    double maxA = 0.0;
+    int imax = i;
 
-    for (k = i; k < N; k++) {
-      if ((absA = fabs(A[k * N + i])) > maxA) { 
+    for (int k = i; k < N; k++) {
+      double absA = fabs(A[k * N + i]);
+      if (absA > maxA) {
         maxA = absA;
         imax = k;
       }
@@ -155,9 +155,9 @@ int LUPDecompose(double *A, int N, int *P) {
 
     if (imax != i) {
       // pivoting P
-      j = P[i];
+      int ii = P[i];
       P[i] = P[imax];
-      P[imax] = j;
+      P[imax] = ii;
 
       // pivoting rows of A
       for (int j=0; j<N; j++) {
@@ -170,16 +170,16 @@ int LUPDecompose(double *A, int N, int *P) {
       P[N]++;
     }
 
-    for (j = i + 1; j < N; j++) {
+    for (int j = i + 1; j < N; j++) {
       A[j * N + i] /= A[i * N + i];
 
-      for (k = i + 1; k < N; k++) {
+      for (int k = i + 1; k < N; k++) {
         A[j * N + k] -= A[j * N + i] * A[i * N + k];
       }
     }
   }
 
-  return 1; 
+  return 1;
 }
 
 /* INPUT: A,P filled in LUPDecompose; b - rhs vector; N - dimension
@@ -206,7 +206,7 @@ void LUPSolve(double *A, int *P, double *b, int N, double *x) {
  * OUTPUT: IA is the inverse of the initial matrix
  */
 void LUPInvert(double *A, int *P, int N, double *IA) {
-  
+
     for (int j = 0; j < N; j++) {
       for (int i = 0; i < N; i++) {
         if (P[i] == j) {
@@ -230,7 +230,7 @@ void LUPInvert(double *A, int *P, int N, double *IA) {
     }
 }
 
-/* INPUT: A,P filled in LUPDecompose; N - dimension. 
+/* INPUT: A,P filled in LUPDecompose; N - dimension.
  * OUTPUT: Function returns the determinant of the initial matrix
  */
 double LUPDeterminant(double *A, int *P, int N) {
@@ -240,7 +240,7 @@ double LUPDeterminant(double *A, int *P, int N) {
     }
 
     if ((P[N] - N) % 2 == 0) {
-      return det; 
+      return det;
     } else {
       return -det;
     }
@@ -253,16 +253,16 @@ double LUPDeterminant(double *A, int *P, int N) {
 
 WASM_EXPORT
 void inverse(double *A, double *IA, int N) {
-  int *P = memalloc((N+1)*sizeof(int));
-  int r = LUPDecompose(A, N, P);
+  int *P = (int *)memalloc((N+1)*sizeof(int));
+  LUPDecompose(A, N, P);
   LUPInvert(A, P, N, IA);
   memfree(P, (N+1)*sizeof(int));
 }
 
 WASM_EXPORT
 double determinant(double *A, int N) {
-  int *P = memalloc((N+1)*sizeof(int));
-  int r = LUPDecompose(A, N, P);
+  int *P = (int *)memalloc((N+1)*sizeof(int));
+  LUPDecompose(A, N, P);
   double d = LUPDeterminant(A, P, N);
   memfree(P, (N+1)*sizeof(int));
   return d;
@@ -290,6 +290,27 @@ void multiply(double *X, double *Y, double *R, int N) {
     }
   }
 }
+
+// WASM_EXPORT
+// void multiply(double *X, double *Y, double *R, int N) {
+//   // Multiplies two matrices X*Y.
+//   for (int i = 0; i < N; i++) {
+//     for (int j = 0; j < N; j++) {
+//       v128_t r = wasm_f64x2_make(0, 0);
+//       for (int k = 0; k < N; k += 2) {
+//         int x1 = j * N + k;
+//         int y1 = k * N + i;
+//         v128_t a = wasm_f64x2_make(X[x1], X[x1 + 1]);
+//         v128_t b = wasm_f64x2_make(Y[y1], Y[y1 + N]);
+//         v128_t prod = wasm_f64x2_mul(a, b);
+//         r = wasm_f64x2_add(prod, r);
+//       }
+//       double left = wasm_f64x2_extract_lane(r, 0);
+//       double right = wasm_f64x2_extract_lane(r, 1);
+//       R[j * N + i] = left+right;
+//     }
+//   }
+// }
 
 WASM_EXPORT
 void transpose(double *A, int N) {
